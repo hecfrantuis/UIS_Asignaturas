@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Método Congruencial Mixto</title>
+<style>
+  :root{
+    --bg:#eef5f1;
+    --surface:#ffffff;
+    --ink:#16302a;
+    --muted:#6b7f78;
+    --brand:#0b7a5a;
+    --brand-2:#14b88a;
+    --brand-soft:#e8f7f1;
+    --line:#dbe9e3;
+    --danger:#c0392b;
+    --radius:18px;
+    --shadow-sm:0 4px 16px rgba(11,60,45,.06);
+    --shadow:0 14px 38px rgba(11,60,45,.12);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+
+  body{
+    margin:0;
+    font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    color:var(--ink);
+    line-height:1.55;
+    background:
+      radial-gradient(900px 520px at 8% -12%, #d7f2e6 0%, transparent 60%),
+      radial-gradient(820px 520px at 102% -6%, #dcefff 0%, transparent 55%),
+      var(--bg);
+    background-attachment:fixed;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 22px 48px}
+
+  /* ---------- Encabezado ---------- */
+  header{
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(135deg,#075e45 0%,#0b7a5a 45%,#14b88a 100%);
+    color:#fff;
+    padding:34px 34px 32px;
+    border-radius:26px;
+    margin-bottom:26px;
+    box-shadow:var(--shadow);
+  }
+  header::before{
+    content:"";position:absolute;width:340px;height:340px;border-radius:50%;
+    background:rgba(255,255,255,.10);top:-170px;right:-90px;
+  }
+  header::after{
+    content:"";position:absolute;width:220px;height:220px;border-radius:50%;
+    background:rgba(255,255,255,.07);bottom:-140px;right:130px;
+  }
+  header h1{
+    position:relative;margin:0 0 8px;
+    font-size:clamp(1.45rem,3.2vw,2.05rem);
+    letter-spacing:-.5px;line-height:1.15;
+  }
+  header p{
+    position:relative;margin:0;max-width:64ch;
+    color:rgba(255,255,255,.88);font-size:.98rem;
+  }
+  .badge{
+    position:relative;display:inline-block;margin-bottom:14px;
+    padding:5px 13px;border-radius:999px;
+    background:rgba(255,255,255,.16);
+    border:1px solid rgba(255,255,255,.3);
+    font-size:.7rem;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;
+  }
+
+  /* ---------- Layout ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:340px minmax(0,1fr);
+    gap:22px;
+    align-items:start;
+  }
+  .side,.main{min-width:0}
+
+  /* ---------- Tarjetas ---------- */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px;
+    margin-bottom:20px;
+    box-shadow:var(--shadow-sm);
+  }
+  .card h2{
+    display:flex;align-items:center;gap:9px;
+    margin:0 0 6px;font-size:1.02rem;letter-spacing:-.2px;
+  }
+  .card h2::before{
+    content:"";flex:none;width:8px;height:8px;border-radius:3px;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  }
+
+  /* ---------- Formulario ---------- */
+  label{
+    display:block;margin:14px 0 6px;
+    font-size:.85rem;font-weight:600;color:#3a5a51;letter-spacing:.2px;
+  }
+  input{
+    width:100%;padding:12px 14px;
+    border:1.5px solid var(--line);border-radius:12px;
+    background:#fbfdfc;color:var(--ink);
+    font-size:.95rem;font-family:inherit;
+    transition:border-color .18s, box-shadow .18s, background .18s;
+  }
+  input::placeholder{color:#a8bbb4}
+  input:hover{border-color:#c9e0d7}
+  input:focus{
+    outline:none;background:#fff;
+    border-color:var(--brand-2);
+    box-shadow:0 0 0 4px rgba(20,184,138,.15);
+  }
+
+  button{
+    width:100%;padding:13px;margin-top:12px;
+    border:0;border-radius:12px;
+    font-family:inherit;font-size:.92rem;font-weight:700;
+    cursor:pointer;
+    transition:transform .16s, box-shadow .16s, background .16s, border-color .16s;
+  }
+  button:active{transform:translateY(1px) scale(.995)}
+  .primary{
+    margin-top:20px;color:#fff;
+    background:linear-gradient(135deg,#0b7a5a,#16b98c);
+    box-shadow:0 8px 20px rgba(11,122,90,.28);
+  }
+  .primary:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(11,122,90,.34)}
+  .secondary{
+    background:var(--brand-soft);color:var(--brand);
+    border:1px solid #cdeade;
+  }
+  .secondary:hover{background:#dcf2e9;transform:translateY(-1px)}
+  .danger{
+    background:#fff2f0;color:var(--danger);
+    border:1px solid #ffdcd6;
+  }
+  .danger:hover{background:#ffe6e2;transform:translateY(-1px)}
+
+  /* ---------- Mensajes ---------- */
+  #error:not(:empty){
+    margin-top:14px;padding:12px 14px;
+    border-radius:12px;
+    background:#fff2f0;border:1px solid #ffdcd6;
+    color:var(--danger);font-size:.86rem;font-weight:600;
+  }
+
+  /* ---------- Fórmulas ---------- */
+  .formula{
+    background:var(--brand-soft);
+    border-left:4px solid var(--brand-2);
+    border-radius:0 12px 12px 0;
+    padding:14px 16px;margin:12px 0;
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:1.05rem;color:#0e3a2d;
+  }
+  .note{color:var(--muted);font-size:.82rem;line-height:1.6;margin:8px 0 0}
+
+  /* ---------- Métricas ---------- */
+  .metrics{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:12px;margin-top:16px;
+  }
+  .metric{
+    background:linear-gradient(160deg,#f3fbf8,#e8f7f1);
+    border:1px solid #d5ece2;
+    border-radius:14px;padding:14px 16px;
+    transition:transform .18s, box-shadow .18s;
+  }
+  .metric:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(11,60,45,.08)}
+  .metric small{
+    display:block;margin-bottom:4px;
+    color:var(--muted);font-size:.7rem;font-weight:700;
+    letter-spacing:1px;text-transform:uppercase;
+  }
+  .metric b{
+    font-size:1.35rem;color:#0b5c45;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* ---------- Tabla ---------- */
+  .table{
+    overflow:auto;
+    max-height:620px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    margin-top:14px;
+    background:#fff;
+  }
+  table{
+    border-collapse:separate;
+    border-spacing:0;
+    width:100%;
+    min-width:640px;
+  }
+  th,td{
+    padding:11px 14px;
+    text-align:right;
+    font-size:.9rem;
+    font-variant-numeric:tabular-nums;
+    border-bottom:1px solid #eaf1ee;
+  }
+  thead th{
+    position:sticky;top:0;z-index:2;
+    background:#eaf6f1;
+    color:#0b5c45;
+    font-size:.74rem;font-weight:700;
+    letter-spacing:.7px;text-transform:uppercase;
+    white-space:nowrap;
+    border-bottom:1px solid #d5ece2;
+  }
+  tbody tr:nth-child(even){background:#fafdfb}
+  tbody tr:hover{background:#f0faf5}
+  tbody tr:last-child td{border-bottom:0}
+  th:first-child,td:first-child{
+    text-align:center;width:62px;color:var(--muted);font-weight:600;
+  }
+  .good{color:var(--brand);font-weight:700}
+  .error{color:var(--danger);font-weight:700}
+
+  /* ---------- Listas ---------- */
+  .list{
+    background:#f8fbfa;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 16px;
+    margin-top:12px;
+    font-size:.88rem;
+    line-height:2.15;
+    color:#41605a;
+    word-break:break-word;
+    font-variant-numeric:tabular-nums;
+  }
+  .list b{color:var(--brand);font-weight:700}
+  #periodo{line-height:1.75}
+
+  /* ---------- Utilidades ---------- */
+  .hidden{display:none !important}
+  #resultados{animation:fadeUp .45s ease both}
+  @keyframes fadeUp{
+    from{opacity:0;transform:translateY(12px)}
+    to{opacity:1;transform:none}
+  }
+
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:.78rem;
+    padding:10px 0 0;
+  }
+
+  /* ---------- Scrollbar ---------- */
+  .table::-webkit-scrollbar{height:10px;width:10px}
+  .table::-webkit-scrollbar-thumb{background:#c6ded5;border-radius:99px;border:2px solid #fff}
+  .table::-webkit-scrollbar-thumb:hover{background:#a8ccc0}
+  .table::-webkit-scrollbar-track{background:#f4faf7}
+
+  /* ---------- Responsive ---------- */
+  @media(max-width:900px){
+    .wrap{padding:18px 14px 40px}
+    .grid{grid-template-columns:1fr;gap:16px}
+    header{padding:26px 22px;border-radius:22px;margin-bottom:18px}
+    .card{padding:18px;border-radius:16px}
+    .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .table{max-height:none}
+  }
+  @media(max-width:430px){
+    header{padding:22px 18px}
+    .metric{padding:12px 13px}
+    .metric b{font-size:1.15rem}
+    th,td{padding:9px 11px;font-size:.82rem}
+    .list{font-size:.84rem;line-height:2}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <span class="badge">Generador LCG</span>
+  <h1>Método Congruencial Mixto</h1>
+  <p>Generador de números pseudoaleatorios a partir de a, c, m, X₀ y la cantidad n.</p>
+</header>
+
+<div class="grid">
+<div class="side">
+<div class="card">
+<h2>Parámetros de entrada</h2>
+<label>a — Multiplicador</label><input id="a" type="number" step="1" placeholder="Ej: 5">
+<label>c — Incremento</label><input id="c" type="number" step="1" placeholder="Ej: 1">
+<label>m — Módulo</label><input id="m" type="number" step="1" min="1" placeholder="Ej: 16">
+<label>X₀ — Semilla</label><input id="x0" type="number" step="1" placeholder="Ej: 7">
+<label>n — Cantidad de números</label><input id="n" type="number" step="1" min="1" placeholder="Ej: 20">
+<button class="primary" onclick="generar()">Generar tabla</button>
+<button class="secondary" onclick="ejemplo()">Cargar ejemplo</button>
+<button class="danger" onclick="limpiar()">Limpiar</button>
+<div id="error" class="error"></div>
+</div>
+
+<div class="card">
+<h2>Fórmulas</h2>
+<div class="formula">Xᵢ = (aXᵢ₋₁ + c) mod m</div>
+<div class="formula">Rᵢ = Xᵢ / m</div>
+<p class="note"><b>X₀</b> es la semilla. Cada Xᵢ se obtiene utilizando el X anterior. Luego se divide Xᵢ entre m para obtener Rᵢ.</p>
+</div>
+</div>
+
+<div class="main">
+<div id="resultados" class="hidden">
+<div class="card">
+<h2>Resumen</h2>
+<div class="metrics">
+<div class="metric"><small>a</small><b id="ra"></b></div>
+<div class="metric"><small>c</small><b id="rc"></b></div>
+<div class="metric"><small>m</small><b id="rm"></b></div>
+<div class="metric"><small>X₀</small><b id="rx"></b></div>
+</div>
+</div>
+
+<div class="card">
+<h2>Tabla de generación</h2>
+<p class="note">Aquí aparecen las posiciones i, el X anterior, la operación y el Rᵢ correspondiente.</p>
+<div class="table">
+<table>
+<thead><tr><th>i</th><th>Xᵢ₋₁</th><th>aXᵢ₋₁ + c</th><th>Xᵢ</th><th>Rᵢ = Xᵢ/m</th></tr></thead>
+<tbody id="tabla"></tbody>
+</table>
+</div>
+</div>
+
+<div class="card">
+<h2>Rᵢ por posición</h2>
+<div id="rlist" class="list"></div>
+</div>
+
+<div class="card">
+<h2>Xᵢ por posición</h2>
+<div id="xlist" class="list"></div>
+</div>
+
+<div class="card">
+<h2>Período detectado</h2>
+<div id="periodo" class="list"></div>
+</div>
+</div>
+</div>
+</div>
+
+<footer>Método Congruencial Mixto · Xᵢ = (aXᵢ₋₁ + c) mod m</footer>
+</div>
+
+<script>
+function generar(){
+ const err=document.getElementById("error"); err.textContent="";
+ const a=Number(document.getElementById("a").value);
+ const c=Number(document.getElementById("c").value);
+ const m=Number(document.getElementById("m").value);
+ const x0=Number(document.getElementById("x0").value);
+ const n=Number(document.getElementById("n").value);
+
+ if(![a,c,m,x0,n].every(Number.isFinite)){err.textContent="Completa todos los campos.";return}
+ if(![a,c,m,x0,n].every(Number.isInteger)){err.textContent="a, c, m, X₀ y n deben ser enteros.";return}
+ if(m<=0||n<=0){err.textContent="m y n deben ser mayores que 0.";return}
+ if(x0<0||x0>=m){err.textContent="X₀ debe cumplir 0 ≤ X₀ < m.";return}
+ if(n>100000){err.textContent="La cantidad máxima es 100000.";return}
+
+ let x=x0, filas="", rs="", xs="", vistos=new Map(), ciclo=null;
+ for(let i=1;i<=n;i++){
+   if(vistos.has(x) && ciclo===null) ciclo={inicio:vistos.get(x),longitud:i-vistos.get(x)};
+   else vistos.set(x,i);
+   let anterior=x, operacion=a*anterior+c, nuevo=((operacion%m)+m)%m, r=nuevo/m;
+   filas+=`<tr><td>${i}</td><td>${anterior}</td><td>${operacion}</td><td class="good">${nuevo}</td><td>${r.toFixed(10)}</td></tr>`;
+   rs+=`<b>R${i}</b> = ${r.toFixed(10)} &nbsp; | &nbsp; `;
+   xs+=`<b>X${i}</b> = ${nuevo} &nbsp; | &nbsp; `;
+   x=nuevo;
+ }
+ document.getElementById("ra").textContent=a;
+ document.getElementById("rc").textContent=c;
+ document.getElementById("rm").textContent=m;
+ document.getElementById("rx").textContent=x0;
+ document.getElementById("tabla").innerHTML=filas;
+ document.getElementById("rlist").innerHTML=rs;
+ document.getElementById("xlist").innerHTML=xs;
+
+ if(ciclo) document.getElementById("periodo").innerHTML=`Se detectó repetición desde la posición <b>${ciclo.inicio}</b>. Longitud del período: <b>${ciclo.longitud}</b>.`;
+ else document.getElementById("periodo").textContent=`No se detectó una repetición dentro de las ${n} posiciones generadas.`;
+
+ document.getElementById("resultados").classList.remove("hidden");
+ document.getElementById("resultados").scrollIntoView({behavior:"smooth"});
+}
+function ejemplo(){
+ document.getElementById("a").value=5;
+ document.getElementById("c").value=1;
+ document.getElementById("m").value=16;
+ document.getElementById("x0").value=7;
+ document.getElementById("n").value=20;
+ generar();
+}
+function limpiar(){
+ ["a","c","m","x0","n"].forEach(id=>document.getElementById(id).value="");
+ document.getElementById("error").textContent="";
+ document.getElementById("resultados").classList.add("hidden");
+}
+</script>
+</body>
+</html>
