@@ -1,256 +1,541 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Asignaturas ing.sistemas - Panel Dinámico</title>
-  <style>
-    :root {
-      --bg-color: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --border: #e2e8f0;
-      --badge-prod-bg: #dcfce7;
-      --badge-prod-text: #166534;
-      --badge-lab-bg: #fef3c7;
-      --badge-lab-text: #92400e;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asignaturas Ing. Sistemas - Panel Dinámico</title>
+<style>
+  :root {
+    --bg-color: #f1f5f9;
+    --card-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --border: #e2e8f0;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.05);
+    --shadow-md: 0 10px 15px -3px rgba(15,23,42,.08), 0 4px 6px -4px rgba(15,23,42,.05);
+    --radius: 12px;
+  }
 
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      margin: 0;
-      padding: 2.5rem 1rem;
-      line-height: 1.5;
-    }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
 
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    margin: 0;
+    padding: clamp(1rem, 4vw, 2.5rem) clamp(.75rem, 3vw, 1rem);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
 
-    header {
-      margin-bottom: 2.5rem;
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 1.5rem;
-    }
+  .container { width: 100%; max-width: 1000px; margin: 0 auto; }
 
-    h1 {
-      font-size: 2rem;
-      margin: 0 0 0.5rem 0;
-    }
+  header {
+    margin-bottom: clamp(1.25rem, 4vw, 2.5rem);
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 1.25rem;
+  }
 
-    p.subtitle {
-      color: var(--text-muted);
-      font-size: 1rem;
-      margin: 0;
-    }
+  h1 {
+    font-size: clamp(1.35rem, 4vw, 2rem);
+    margin: 0 0 .4rem;
+    line-height: 1.2;
+  }
 
-    section {
-      margin-bottom: 2.5rem;
-    }
+  p.subtitle {
+    color: var(--text-muted);
+    font-size: clamp(.85rem, 2.5vw, 1rem);
+    margin: 0;
+  }
 
-    h2 {
-      font-size: 1.35rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 0.5rem;
-      margin-bottom: 1.25rem;
-    }
+  section { margin-bottom: clamp(1.5rem, 4vw, 2.5rem); }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.25rem;
-    }
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: .5rem;
+    margin-bottom: 1rem;
+  }
+  .section-head h2 {
+    font-size: clamp(1.05rem, 3vw, 1.35rem);
+    margin: 0;
+  }
 
-    .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.25rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
+  .breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .35rem;
+    font-size: .85rem;
+    color: var(--text-muted);
+    margin: 0 0 1rem;
+  }
+  .breadcrumb a { color: var(--primary); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb .sep { opacity: .5; }
+  .breadcrumb .current { color: var(--text-main); font-weight: 600; }
 
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-    }
+  .btn-back {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: .45rem .9rem;
+    border-radius: 8px;
+    font-size: .85rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    transition: background .15s, border-color .15s;
+  }
+  .btn-back:hover { background: #f8fafc; border-color: #cbd5e1; }
 
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 0.75rem;
-    }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    gap: 1rem;
+  }
 
-    .card-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin: 0;
-      text-transform: capitalize;
-    }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    min-width: 0;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: #cbd5e1;
+  }
+  .card.folder { cursor: pointer; }
+  .card.folder:focus-visible { outline: 3px solid rgba(37,99,235,.35); outline-offset: 2px; }
 
-    .badge {
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 0.2rem 0.5rem;
-      border-radius: 9999px;
-      text-transform: uppercase;
-    }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: .5rem;
+  }
 
-    .badge-prod {
-      background-color: var(--badge-prod-bg);
-      color: var(--badge-prod-text);
-    }
+  .card-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
 
-    .badge-plantilla {
-      background-color: #e0f2fe;
-      color: #0369a1;
-    }
-    .card-desc {
-      font-size: 0.875rem;
-      color: var(--text-muted);
-      margin: 0 0 1.25rem 0;
-      word-break: break-all;
-    }
+  .badge {
+    font-size: .68rem;
+    font-weight: 700;
+    padding: .2rem .55rem;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .badge-prod    { background: #dcfce7; color: #166534; }
+  .badge-plantilla { background: #e0f2fe; color: #0369a1; }
+  .badge-folder  { background: #ede9fe; color: #5b21b6; }
 
-    .card-link {
-      display: inline-block;
-      background-color: var(--primary);
-      color: #ffffff;
-      text-decoration: none;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      font-weight: 500;
-      font-size: 0.875rem;
-      text-align: center;
-      transition: background-color 0.2s ease;
-    }
+  .card-desc {
+    font-size: .82rem;
+    color: var(--text-muted);
+    margin: 0;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+  }
+  .card-desc code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: #f1f5f9;
+    padding: .05rem .3rem;
+    border-radius: 4px;
+    font-size: .78rem;
+  }
 
-    .card-link:hover {
-      background-color: var(--primary-hover);
-    }
+  .card-link {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    text-decoration: none;
+    padding: .55rem 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: .85rem;
+    text-align: center;
+    transition: background .15s;
+    margin-top: auto;
+  }
+  .card-link:hover { background: var(--primary-hover); color: #fff; }
 
-    .loading-text {
-      color: var(--text-muted);
-      font-style: italic;
-    }
+  .loading-text, .empty-text {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: .9rem;
+    grid-column: 1 / -1;
+    margin: 0;
+  }
 
-    footer {
-      text-align: center;
-      font-size: 0.875rem;
-      color: var(--text-muted);
-      margin-top: 3rem;
-      border-top: 1px solid var(--border);
-      padding-top: 1.5rem;
-    }
-  </style>
+  footer {
+    text-align: center;
+    font-size: .82rem;
+    color: var(--text-muted);
+    margin-top: 3rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1.25rem;
+  }
+
+  .skeleton {
+    background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 37%, #e2e8f0 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+    border-radius: 8px;
+    height: 110px;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+  }
+</style>
 </head>
 <body>
+<div class="container">
+  <header>
+    <h1>🚀 Ingeniería de Sistemas UIS</h1>
+    <p class="subtitle">Panel dinámico generado automáticamente desde el repositorio.</p>
+  </header>
 
-  <div class="container">
-    <header>
-      <h1>🚀 ingenieria de Sistemas uis</h1>
-      <p class="subtitle">Panel dinámico generado automáticamente desde el repositorio.</p>
-    </header>
+  <main>
+    <section id="section-asignaturas">
+      <div class="section-head">
+        <h2 id="asig-title">📌 Asignaturas</h2>
+        <button id="btn-back" class="btn-back" hidden>← Volver</button>
+      </div>
+      <nav id="breadcrumb" class="breadcrumb" hidden></nav>
+      <div class="grid" id="grid-paginas">
+        <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+      </div>
+    </section>
 
-    <main>
-      <section>
-        <h2>📌 Asignaturas</h2>
-        <div class="grid" id="grid-paginas">
-          <p class="loading-text">Cargando módulos...</p>
-        </div>
-      </section>
-
-      <section>
+    <section id="section-docs" hidden>
+      <div class="section-head">
         <h2>📚 Documentos de asignaturas</h2>
-        <div class="grid" id="grid-plantillas">
-          <p class="loading-text">Cargando plantillas...</p>
-        </div>
-      </section>
-    </main>
+      </div>
+      <div class="grid" id="grid-plantillas"></div>
+    </section>
+  </main>
 
-    <footer>
-      <p>Repositorio: <strong>UIS_Asignaturas</strong> | Conectado a GitHub API</p>
-    </footer>
-  </div>
+  <footer>
+    <p>Repositorio: <strong id="repo-name">—</strong> | Conectado a GitHub API</p>
+  </footer>
+</div>
 
-  <script>
-    // ⚙️ CONFIGURACIÓN: Reemplaza con tu usuario exacto de GitHub
-    const USER = 'hecfrantuis'; 
-    const REPO = 'UIS_Asignaturas';
+<script>
+/* ============================================================
+   ⚙️ CONFIGURACIÓN
+   ============================================================ */
+const CONFIG = {
+  user: 'hecfrantuis',
+  repo: 'UIS_Asignaturas',
+  branch: '',                    // '' = rama por defecto (main/master)
+  asignaturasDir: 'Asignaturas',
+  docsDir: 'Documentos_Asignaturas'
+};
 
-    // Función recursiva para obtener todos los HTML de una carpeta y sus subcarpetas
-    async function obtenerArchivosHTML(path) {
-      const url = `https://api.github.com/repos/${USER}/${REPO}/contents/${path}`; // https://recursosexpertic.github.io/Expertic_Sistemas/
-      try {
-        const response = await fetch(url);
-        if (!response.ok) return [];
-        const items = await response.json();
-        
-        let archivos = [];
-        for (const item of items) {
-          if (item.type === 'file' && item.name.endsWith('.html') && item.name !== 'index.html') {
-            archivos.push(item);
-          } else if (item.type === 'dir') {
-            const subArchivos = await obtenerArchivosHTML(item.path);
-            archivos = archivos.concat(subArchivos);
-          }
-        }
-        return archivos;
-      } catch (e) {
-        console.error(`Error escaneando ${path}:`, e);
-        return [];
-      }
+/* ============================================================
+   🔧 Helpers
+   ============================================================ */
+const $ = id => document.getElementById(id);
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => (
+    { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
+  ));
+}
+function encodePath(p) {
+  return String(p).split('/').map(encodeURIComponent).join('/');
+}
+function prettyName(name) {
+  return name.replace(/\.html$/i, '').replace(/[_-]+/g, ' ').trim();
+}
+function skeletons(n) {
+  return Array.from({ length: n }, () => '<div class="skeleton"></div>').join('');
+}
+
+/* ============================================================
+   🌐 GitHub API con caché en sessionStorage
+   ============================================================ */
+const CACHE_KEY = 'uis_asig_cache_v1';
+const CACHE_TTL = 10 * 60 * 1000; // 10 min
+const memCache = new Map();
+
+(function loadCache() {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    if (!raw) return;
+    const obj = JSON.parse(raw);
+    const now = Date.now();
+    for (const [k, v] of Object.entries(obj)) {
+      if (v && now - v.t < CACHE_TTL) memCache.set(k, v.d);
     }
+  } catch {}
+})();
 
-    // Renderizar las tarjetas en la vista
-    async function cargarSeccion(carpeta, containerId, badgeText, badgeClass) {
-      const container = document.getElementById(containerId);
-      const archivos = await obtenerArchivosHTML(carpeta);
+function persistCache() {
+  try {
+    const obj = {};
+    memCache.forEach((v, k) => { obj[k] = { t: Date.now(), d: v }; });
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(obj));
+  } catch {}
+}
 
-      container.innerHTML = ''; // Limpiar mensaje de carga
+async function ghList(path) {
+  if (memCache.has(path)) return memCache.get(path);
 
-      if (archivos.length === 0) {
-        container.innerHTML = '<p class="loading-text">No se encontraron archivos .html en esta carpeta.</p>';
-        return;
-      }
+  const url = `https://api.github.com/repos/${CONFIG.user}/${CONFIG.repo}/contents/${encodePath(path)}`
+            + (CONFIG.branch ? `?ref=${CONFIG.branch}` : '');
 
-      archivos.forEach(file => {
-        // Formatear el nombre visual (ej: "ingreso-asignaturas.html" -> "Ingreso asignaturas")
-        const titulo = file.name.replace('.html', '').replace(/-/g, ' ');
+  const res = await fetch(url, { headers: { Accept: 'application/vnd.github+json' } });
 
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <div>
-            <div class="card-header">
-              <h3 class="card-title">${titulo}</h3>
-              <span class="badge ${badgeClass}">${badgeText}</span>
-            </div>
-            <p class="card-desc">Ruta: <code>${file.path}</code></p>
-          </div>
-          <a href="${file.path}" class="card-link">Abrir recurso &rarr;</a>
-        `;
-        container.appendChild(card);
-      });
+  if (res.status === 404) { memCache.set(path, []); return []; }
+  if (!res.ok) throw new Error(`GitHub API ${res.status} (${res.statusText})`);
+
+  let data = await res.json();
+  if (!Array.isArray(data)) data = [data];
+  memCache.set(path, data);
+  persistCache();
+  return data;
+}
+
+/** Recorre recursivamente y devuelve todos los .html */
+async function listHtmlRecursive(path, depth = 0) {
+  if (depth > 4) return [];
+  let items;
+  try { items = await ghList(path); } catch { return []; }
+  let result = [];
+  for (const item of items) {
+    if (item.type === 'file' && /\.html$/i.test(item.name)
+        && item.name.toLowerCase() !== 'index.html') {
+      result.push(item);
+    } else if (item.type === 'dir') {
+      result = result.concat(await listHtmlRecursive(item.path, depth + 1));
     }
+  }
+  return result;
+}
 
-    // Inicializar la carga con tus carpetas reales
-    document.addEventListener('DOMContentLoaded', () => {
-      // Carga archivos de la carpeta 'paginas'
-      cargarSeccion('Asignaturas', 'grid-paginas', 'Módulo', 'badge-prod');
+/* ============================================================
+   🧭 Routing por hash:  #/Asignaturas/Simulacion_Digital
+   ============================================================ */
+function parseRoute() {
+  const raw = location.hash.replace(/^#\/?/, '');
+  if (!raw) return null;
+  return raw.split('/').map(decodeURIComponent).join('/');
+}
+function setRoute(path) {
+  if (!path) {
+    // limpiar hash sin dejar '#'
+    history.pushState('', document.title, location.pathname + location.search);
+    render();
+  } else {
+    location.hash = '/' + encodePath(path);
+  }
+}
 
-      // Carga archivos de la carpeta 'Plantillas_Asignaturas' (respeta mayúsculas)
-      cargarSeccion('Documentos_Asignaturas', 'grid-plantillas', 'Plantilla', 'badge-lab');
+/* ============================================================
+   🧩 Render de tarjetas
+   ============================================================ */
+function folderCard(item) {
+  const label = escapeHtml(item.name.replace(/_/g, ' '));
+  return `
+    <article class="card folder" role="button" tabindex="0"
+             data-folder="${escapeHtml(item.path)}"
+             aria-label="Abrir materia ${label}">
+      <div class="card-header">
+        <h3 class="card-title">📁 ${label}</h3>
+        <span class="badge badge-folder">Materia</span>
+      </div>
+      <p class="card-desc">Carpeta: <code>${escapeHtml(item.path)}</code></p>
+      <span class="card-link">Ver contenidos →</span>
+    </article>`;
+}
+
+function fileCard(item, badgeText, badgeClass) {
+  const label = escapeHtml(prettyName(item.name));
+  return `
+    <article class="card">
+      <div class="card-header">
+        <h3 class="card-title">${label}</h3>
+        <span class="badge ${badgeClass}">${badgeText}</span>
+      </div>
+      <p class="card-desc"><code>${escapeHtml(item.name)}</code></p>
+      <a class="card-link" href="${encodePath(item.path)}">Abrir recurso →</a>
+    </article>`;
+}
+
+function wireFolderClicks(root) {
+  root.querySelectorAll('.card.folder').forEach(node => {
+    const go = () => setRoute(node.dataset.folder);
+    node.addEventListener('click', go);
+    node.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); }
     });
-  </script>
+  });
+}
+
+/* ============================================================
+   🏠 Vista principal: lista de materias (carpetas)
+   ============================================================ */
+async function renderHome() {
+  $('asig-title').textContent = '📌 Asignaturas';
+  $('btn-back').hidden = true;
+  $('breadcrumb').hidden = true;
+  $('grid-paginas').innerHTML = skeletons(4);
+  document.title = 'Asignaturas Ing. Sistemas';
+
+  try {
+    const items = await ghList(CONFIG.asignaturasDir);
+    const folders = items
+      .filter(i => i.type === 'dir')
+      .sort((a, b) => a.name.localeCompare(b.name, 'es'));
+    const files = items
+      .filter(i => i.type === 'file' && /\.html$/i.test(i.name)
+                   && i.name.toLowerCase() !== 'index.html')
+      .sort((a, b) => a.name.localeCompare(b.name, 'es'));
+
+    if (!folders.length && !files.length) {
+      $('grid-paginas').innerHTML =
+        '<p class="empty-text">No se encontraron materias en la carpeta <code>'
+        + escapeHtml(CONFIG.asignaturasDir) + '</code>.</p>';
+      return;
+    }
+
+    const html = [
+      ...folders.map(folderCard),
+      ...files.map(f => fileCard(f, 'Módulo', 'badge-prod'))
+    ].join('');
+
+    $('grid-paginas').innerHTML = html;
+    wireFolderClicks($('grid-paginas'));
+  } catch (err) {
+    $('grid-paginas').innerHTML =
+      `<p class="empty-text">Error al cargar materias: ${escapeHtml(err.message)}</p>`;
+  }
+}
+
+/* ============================================================
+   📂 Vista de materia: lista los .html de una carpeta
+   ============================================================ */
+async function renderFolder(path) {
+  $('btn-back').hidden = false;
+  $('breadcrumb').hidden = false;
+  $('grid-paginas').innerHTML = skeletons(3);
+
+  const parts = path.split('/');
+
+  // Breadcrumb: Inicio / Asignaturas / Simulacion Digital
+  let acc = '';
+  const crumbs = ['<a href="#">Inicio</a>'];
+  parts.forEach((p, i) => {
+    acc = acc ? acc + '/' + p : p;
+    const isLast = i === parts.length - 1;
+    const label = escapeHtml(p.replace(/_/g, ' '));
+    if (isLast) crumbs.push(`<span class="current">${label}</span>`);
+    else        crumbs.push(`<a href="#/${encodePath(acc)}">${label}</a>`);
+  });
+  $('breadcrumb').innerHTML = crumbs.join(' <span class="sep">/</span> ');
+
+  const lastLabel = parts[parts.length - 1].replace(/_/g, ' ');
+  $('asig-title').textContent = '📌 ' + lastLabel;
+  document.title = lastLabel + ' - Asignaturas';
+
+  try {
+    const items = await ghList(path);
+    const folders = items
+      .filter(i => i.type === 'dir')
+      .sort((a, b) => a.name.localeCompare(b.name, 'es'));
+    const files = items
+      .filter(i => i.type === 'file' && /\.html$/i.test(i.name)
+                   && i.name.toLowerCase() !== 'index.html')
+      .sort((a, b) => a.name.localeCompare(b.name, 'es'));
+
+    if (!folders.length && !files.length) {
+      $('grid-paginas').innerHTML =
+        '<p class="empty-text">Esta materia todavía no tiene contenidos.</p>';
+      return;
+    }
+
+    const html = [
+      ...folders.map(folderCard),
+      ...files.map(f => fileCard(f, 'Módulo', 'badge-prod'))
+    ].join('');
+
+    $('grid-paginas').innerHTML = html;
+    wireFolderClicks($('grid-paginas'));
+  } catch (err) {
+    $('grid-paginas').innerHTML =
+      `<p class="empty-text">Error al cargar la materia: ${escapeHtml(err.message)}</p>`;
+  }
+}
+
+/* ============================================================
+   📚 Sección de documentos (recursiva, se oculta si está vacía)
+   ============================================================ */
+async function renderDocs() {
+  const grid = $('grid-plantillas');
+  const section = $('section-docs');
+  grid.innerHTML = skeletons(2);
+
+  const files = await listHtmlRecursive(CONFIG.docsDir);
+  if (!files.length) {
+    section.hidden = true;
+    return;
+  }
+  section.hidden = false;
+  grid.innerHTML = files
+    .map(f => fileCard(f, 'Plantilla', 'badge-plantilla'))
+    .join('');
+}
+
+/* ============================================================
+   🚀 Arranque
+   ============================================================ */
+async function render() {
+  const path = parseRoute();
+  if (!path || path === CONFIG.asignaturasDir) await renderHome();
+  else await renderFolder(path);
+}
+
+$('btn-back').addEventListener('click', () => {
+  const path = parseRoute();
+  if (!path) return;
+  const parts = path.split('/');
+  if (parts.length > 2) setRoute(parts.slice(0, -1).join('/'));
+  else setRoute('');
+});
+
+window.addEventListener('hashchange', render);
+
+document.addEventListener('DOMContentLoaded', () => {
+  $('repo-name').textContent = CONFIG.repo;
+  render();
+  renderDocs();
+});
+</script>
 </body>
 </html>
