@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Método de Productos Medios</title>
+<style>
+  :root{
+    --bg:#eef5f1;
+    --surface:#ffffff;
+    --ink:#16302a;
+    --muted:#6b7f78;
+    --brand:#0b7a5a;
+    --brand-2:#14b88a;
+    --brand-soft:#e8f7f1;
+    --line:#dbe9e3;
+    --danger:#c0392b;
+    --radius:18px;
+    --shadow-sm:0 4px 16px rgba(11,60,45,.06);
+    --shadow:0 14px 38px rgba(11,60,45,.12);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+
+  body{
+    margin:0;
+    font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    color:var(--ink);
+    line-height:1.55;
+    background:
+      radial-gradient(900px 520px at 8% -12%, #d7f2e6 0%, transparent 60%),
+      radial-gradient(820px 520px at 102% -6%, #dcefff 0%, transparent 55%),
+      var(--bg);
+    background-attachment:fixed;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 22px 48px}
+
+  /* ---------- Encabezado ---------- */
+  header{
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(135deg,#075e45 0%,#0b7a5a 45%,#14b88a 100%);
+    color:#fff;
+    padding:34px 34px 32px;
+    border-radius:26px;
+    margin-bottom:26px;
+    box-shadow:var(--shadow);
+  }
+  header::before{
+    content:"";position:absolute;width:340px;height:340px;border-radius:50%;
+    background:rgba(255,255,255,.10);top:-170px;right:-90px;
+  }
+  header::after{
+    content:"";position:absolute;width:220px;height:220px;border-radius:50%;
+    background:rgba(255,255,255,.07);bottom:-140px;right:130px;
+  }
+  header h1{
+    position:relative;margin:0 0 8px;
+    font-size:clamp(1.45rem,3.2vw,2.05rem);
+    letter-spacing:-.5px;line-height:1.15;
+  }
+  header p{
+    position:relative;margin:0;max-width:64ch;
+    color:rgba(255,255,255,.9);font-size:.98rem;
+  }
+  .badge-top{
+    position:relative;display:inline-block;margin-bottom:14px;
+    padding:5px 13px;border-radius:999px;
+    background:rgba(255,255,255,.16);
+    border:1px solid rgba(255,255,255,.3);
+    font-size:.7rem;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;
+  }
+
+  /* ---------- Pasos ---------- */
+  .steps{
+    position:relative;
+    display:flex;flex-wrap:wrap;gap:8px;
+    margin-top:20px;
+  }
+  .step{
+    padding:8px 13px;border-radius:10px;
+    background:rgba(255,255,255,.13);
+    border:1px solid rgba(255,255,255,.28);
+    font-size:.78rem;font-weight:600;letter-spacing:.2px;
+    backdrop-filter:blur(4px);
+    transition:background .18s, transform .18s;
+  }
+  .step:hover{background:rgba(255,255,255,.22);transform:translateY(-1px)}
+
+  /* ---------- Layout ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:350px minmax(0,1fr);
+    gap:22px;
+    align-items:start;
+  }
+  .grid > section{min-width:0}
+
+  /* ---------- Tarjetas ---------- */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px;
+    margin-bottom:20px;
+    box-shadow:var(--shadow-sm);
+  }
+  .card h2{
+    display:flex;align-items:center;gap:9px;
+    margin:0 0 6px;font-size:1.02rem;letter-spacing:-.2px;color:#0b5c45;
+  }
+  .card h2::before{
+    content:"";flex:none;width:8px;height:8px;border-radius:3px;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  }
+
+  /* ---------- Formulario ---------- */
+  label{
+    display:block;margin:14px 0 6px;
+    font-size:.85rem;font-weight:600;color:#3a5a51;letter-spacing:.2px;
+  }
+  input{
+    width:100%;padding:12px 14px;
+    border:1.5px solid var(--line);border-radius:12px;
+    background:#fbfdfc;color:var(--ink);
+    font-size:.95rem;font-family:inherit;
+    transition:border-color .18s, box-shadow .18s, background .18s;
+  }
+  input::placeholder{color:#a8bbb4}
+  input:hover{border-color:#c9e0d7}
+  input:focus{
+    outline:none;background:#fff;
+    border-color:var(--brand-2);
+    box-shadow:0 0 0 4px rgba(20,184,138,.15);
+  }
+
+  button{
+    width:100%;padding:13px;margin-top:12px;
+    border:0;border-radius:12px;
+    font-family:inherit;font-size:.92rem;font-weight:700;
+    cursor:pointer;
+    transition:transform .16s, box-shadow .16s, background .16s, border-color .16s;
+  }
+  button:active{transform:translateY(1px) scale(.995)}
+  .primary{
+    margin-top:20px;color:#fff;
+    background:linear-gradient(135deg,#0b7a5a,#16b98c);
+    box-shadow:0 8px 20px rgba(11,122,90,.28);
+  }
+  .primary:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(11,122,90,.34)}
+  .secondary{
+    background:var(--brand-soft);color:var(--brand);
+    border:1px solid #cdeade;
+  }
+  .secondary:hover{background:#dcf2e9;transform:translateY(-1px)}
+  .danger{
+    background:#fff2f0;color:var(--danger);
+    border:1px solid #ffdcd6;
+  }
+  .danger:hover{background:#ffe6e2;transform:translateY(-1px)}
+
+  /* ---------- Mensaje error ---------- */
+  #error:not(:empty){
+    margin-top:14px;padding:12px 14px;
+    border-radius:12px;
+    background:#fff2f0;border:1px solid #ffdcd6;
+    color:var(--danger);font-size:.86rem;font-weight:600;
+  }
+
+  /* ---------- Fórmulas ---------- */
+  .formula{
+    background:var(--brand-soft);
+    border-left:4px solid var(--brand-2);
+    border-radius:0 12px 12px 0;
+    padding:14px 16px;margin:12px 0;
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:1.02rem;color:#0e3a2d;
+    word-break:break-word;
+  }
+  .note{color:var(--muted);font-size:.82rem;line-height:1.65;margin:8px 0 0}
+
+  /* ---------- Métricas ---------- */
+  .metrics{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:12px;margin-top:16px;
+  }
+  .metric{
+    background:linear-gradient(160deg,#f3fbf8,#e8f7f1);
+    border:1px solid #d5ece2;
+    border-radius:14px;padding:14px 16px;
+    transition:transform .18s, box-shadow .18s;
+  }
+  .metric:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(11,60,45,.08)}
+  .metric span{
+    display:block;margin-bottom:4px;
+    color:var(--muted);font-size:.7rem;font-weight:700;
+    letter-spacing:1px;text-transform:uppercase;
+  }
+  .metric strong{
+    font-size:1.35rem;color:#0b5c45;
+    font-variant-numeric:tabular-nums;
+    word-break:break-word;
+  }
+
+  /* ---------- Tabla ---------- */
+  .table-wrap{
+    overflow:auto;
+    max-height:620px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    margin-top:14px;
+    background:#fff;
+  }
+  table{
+    border-collapse:separate;
+    border-spacing:0;
+    width:100%;
+    min-width:880px;
+  }
+  th,td{
+    padding:11px 14px;
+    text-align:right;
+    font-size:.88rem;
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+    border-bottom:1px solid #eaf1ee;
+  }
+  thead th{
+    position:sticky;top:0;z-index:2;
+    background:#eaf6f1;
+    color:#0b5c45;
+    font-size:.72rem;font-weight:700;
+    letter-spacing:.7px;text-transform:uppercase;
+    border-bottom:1px solid #d5ece2;
+  }
+  tbody tr:nth-child(even){background:#fafdfb}
+  tbody tr:hover{background:#f0faf5}
+  tbody tr:last-child td{border-bottom:0}
+  th:first-child,td:first-child{
+    text-align:center;width:60px;color:var(--muted);font-weight:600;
+  }
+  .good{color:var(--brand);font-weight:700}
+
+  /* ---------- Info / Listas ---------- */
+  .info{
+    background:#f8fbfa;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 16px;
+    margin-top:12px;
+    font-size:.88rem;
+    line-height:2.15;
+    color:#41605a;
+    word-break:break-word;
+    font-variant-numeric:tabular-nums;
+  }
+  .info b{color:var(--brand);font-weight:700}
+  #periodo{line-height:1.75}
+
+  .badge{
+    display:inline-block;
+    background:linear-gradient(135deg,#e7f6ef,#d5efe4);
+    color:#0b5c45;
+    font-weight:700;
+    border-radius:999px;
+    padding:7px 14px;
+    font-size:.78rem;
+    border:1px solid #c6e6d8;
+    letter-spacing:.2px;
+  }
+
+  /* ---------- Utilidades ---------- */
+  .hidden{display:none !important}
+  #resultados{animation:fadeUp .45s ease both}
+  @keyframes fadeUp{
+    from{opacity:0;transform:translateY(12px)}
+    to{opacity:1;transform:none}
+  }
+
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:.78rem;
+    padding:10px 0 0;
+  }
+
+  /* ---------- Scrollbar ---------- */
+  .table-wrap::-webkit-scrollbar{height:10px;width:10px}
+  .table-wrap::-webkit-scrollbar-thumb{background:#c6ded5;border-radius:99px;border:2px solid #fff}
+  .table-wrap::-webkit-scrollbar-thumb:hover{background:#a8ccc0}
+  .table-wrap::-webkit-scrollbar-track{background:#f4faf7}
+
+  /* ---------- Responsive ---------- */
+  @media(max-width:900px){
+    .wrap{padding:18px 14px 40px}
+    .grid{grid-template-columns:1fr;gap:16px}
+    header{padding:26px 22px;border-radius:22px;margin-bottom:18px}
+    .card{padding:18px;border-radius:16px}
+    .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .table-wrap{max-height:none}
+  }
+  @media(max-width:430px){
+    header{padding:22px 18px}
+    .step{padding:7px 10px;font-size:.72rem}
+    .metric{padding:12px 13px}
+    .metric strong{font-size:1.15rem}
+    th,td{padding:9px 11px;font-size:.8rem}
+    .info{font-size:.84rem;line-height:2}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <span class="badge-top">Generador Pseudoaleatorio</span>
+  <h1>Método de Productos Medios</h1>
+  <p>Genera números pseudoaleatorios usando dos semillas iniciales.</p>
+  <div class="steps">
+    <div class="step">1. Semilla X₀</div>
+    <div class="step">2. Semilla X₁</div>
+    <div class="step">3. Multiplicar</div>
+    <div class="step">4. Extraer dígitos centrales</div>
+    <div class="step">5. Calcular Rᵢ</div>
+    <div class="step">6. Repetir n veces</div>
+  </div>
+</header>
+
+<div class="grid">
+<section>
+<div class="card">
+<h2>Semillas y cantidad</h2>
+
+<label for="x0">Primera semilla X₀</label>
+<input id="x0" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej: 5734">
+
+<label for="x1">Segunda semilla X₁</label>
+<input id="x1" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej: 8129">
+
+<label for="n">Cantidad de números a generar (n)</label>
+<input id="n" type="number" min="1" step="1" placeholder="Ej: 20">
+
+<button class="primary" onclick="generar()">Generar tabla</button>
+<button class="secondary" onclick="ejemplo()">Cargar ejemplo</button>
+<button class="danger" onclick="limpiar()">Limpiar</button>
+<div id="error" class="error"></div>
+</div>
+
+<div class="card">
+<h2>Fórmula del método</h2>
+<div class="formula">X<sub>i+2</sub> = dígitos centrales de (X<sub>i</sub> × X<sub>i+1</sub>)</div>
+<div class="formula">R<sub>i</sub> = X<sub>i</sub> / 10<sup>k</sup></div>
+<p class="note">
+Las dos semillas deben tener la misma cantidad de dígitos. Si tienen <b>k</b> dígitos,
+se completa el producto hasta <b>2k</b> dígitos y se toman los <b>k dígitos centrales</b>.
+</p>
+</div>
+
+<div class="card">
+<h2>Importante</h2>
+<p class="note">
+Las semillas deben ser <b>enteros positivos</b>, sin puntos, comas ni decimales,
+y ambas deben tener la misma cantidad de dígitos.
+</p>
+</div>
+</section>
+
+<section>
+<div id="resultados" class="hidden">
+<div class="card">
+<h2>Resumen</h2>
+<div class="metrics">
+<div class="metric"><span>X₀</span><strong id="rx0"></strong></div>
+<div class="metric"><span>X₁</span><strong id="rx1"></strong></div>
+<div class="metric"><span>Dígitos k</span><strong id="rk"></strong></div>
+<div class="metric"><span>Cantidad n</span><strong id="rn"></strong></div>
+</div>
+</div>
+
+<div class="card">
+<h2>Tabla de generación</h2>
+<p class="note">Se muestran las dos semillas usadas en cada multiplicación, el producto, los ceros agregados, los dígitos centrales y el R correspondiente.</p>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>i</th><th>X<sub>i</sub></th><th>X<sub>i+1</sub></th><th>Producto</th>
+<th>Producto con 2k dígitos</th><th>Dígitos centrales</th><th>R<sub>i</sub></th>
+</tr>
+</thead>
+<tbody id="tabla"></tbody>
+</table>
+</div>
+</div>
+
+<div class="card">
+<h2>Rᵢ por posición</h2>
+<div id="rlist" class="info"></div>
+</div>
+
+<div class="card">
+<h2>X generados por posición</h2>
+<div id="xlist" class="info"></div>
+</div>
+
+<div class="card">
+<h2>Período detectado</h2>
+<div id="periodo" class="info"></div>
+</div>
+</div>
+</section>
+</div>
+
+<footer>Método de Productos Medios · X<sub>i+2</sub> = dígitos centrales de (X<sub>i</sub> × X<sub>i+1</sub>)</footer>
+</div>
+
+<script>
+function generar(){
+  const err=document.getElementById("error");
+  err.textContent="";
+
+  const x0=document.getElementById("x0").value.trim();
+  const x1=document.getElementById("x1").value.trim();
+  const n=Number(document.getElementById("n").value);
+
+  // Validación correcta: solo dígitos 0-9.
+  if(!/^\d+$/.test(x0) || !/^\d+$/.test(x1)){
+    err.textContent="Las dos semillas deben contener únicamente números enteros positivos.";
+    return;
+  }
+
+  if(x0 === "0" || x1 === "0"){
+    err.textContent="Las semillas deben ser mayores que 0.";
+    return;
+  }
+
+  if(x0.length !== x1.length){
+    err.textContent="Las dos semillas deben tener exactamente la misma cantidad de dígitos.";
+    return;
+  }
+
+  if(x0.length < 2){
+    err.textContent="Usa semillas de al menos 2 dígitos.";
+    return;
+  }
+
+  if(!Number.isInteger(n) || n <= 0){
+    err.textContent="La cantidad n debe ser un entero mayor que 0.";
+    return;
+  }
+
+  if(n > 100000){
+    err.textContent="La cantidad máxima permitida es 100000.";
+    return;
+  }
+
+  const k=x0.length;
+  const ancho=2*k;
+  let a=x0, b=x1;
+  let filas="", rlist="", xlist="";
+  let vistos=new Map();
+  let ciclo=null;
+
+  // Se generan n nuevos números: X2, X3, ..., X(n+1)
+  for(let j=1;j<=n;j++){
+    const clave=a+"|"+b;
+
+    if(vistos.has(clave) && ciclo===null){
+      ciclo={inicio:vistos.get(clave), longitud:j-vistos.get(clave)};
+    }else if(!vistos.has(clave)){
+      vistos.set(clave,j);
+    }
+
+    const producto=BigInt(a)*BigInt(b);
+    const prod=producto.toString().padStart(ancho,"0");
+
+    // Para 2k dígitos, los k dígitos centrales comienzan en k/2.
+    const inicio=Math.floor((ancho-k)/2);
+    const central=prod.substring(inicio,inicio+k);
+
+    const r=Number(central)/Math.pow(10,k);
+
+    filas += `<tr>
+      <td>${j}</td>
+      <td>${a}</td>
+      <td>${b}</td>
+      <td>${producto.toString()}</td>
+      <td>${prod}</td>
+      <td class="good">${central}</td>
+      <td>${r.toFixed(k)}</td>
+    </tr>`;
+
+    rlist += `<b>R${j}</b> = ${r.toFixed(k)} &nbsp; | &nbsp; `;
+    xlist += `<b>X${j+1}</b> = ${central} &nbsp; | &nbsp; `;
+
+    a=b;
+    b=central;
+  }
+
+  document.getElementById("rx0").textContent=x0;
+  document.getElementById("rx1").textContent=x1;
+  document.getElementById("rk").textContent=k;
+  document.getElementById("rn").textContent=n;
+  document.getElementById("tabla").innerHTML=filas;
+  document.getElementById("rlist").innerHTML=rlist;
+  document.getElementById("xlist").innerHTML=xlist;
+
+  if(ciclo){
+    document.getElementById("periodo").innerHTML=
+      `<span class="badge">Período detectado: ${ciclo.longitud}</span>
+      <br><br>La pareja de valores se repitió en la generación <b>${ciclo.inicio}</b>.`;
+  }else{
+    document.getElementById("periodo").textContent=
+      `No se detectó repetición dentro de las ${n} generaciones solicitadas.`;
+  }
+
+  document.getElementById("resultados").classList.remove("hidden");
+  document.getElementById("resultados").scrollIntoView({behavior:"smooth"});
+}
+
+function ejemplo(){
+  document.getElementById("x0").value="5734";
+  document.getElementById("x1").value="8129";
+  document.getElementById("n").value="20";
+  generar();
+}
+
+function limpiar(){
+  document.getElementById("x0").value="";
+  document.getElementById("x1").value="";
+  document.getElementById("n").value="";
+  document.getElementById("error").textContent="";
+  document.getElementById("resultados").classList.add("hidden");
+}
+</script>
+</body>
+</html>
