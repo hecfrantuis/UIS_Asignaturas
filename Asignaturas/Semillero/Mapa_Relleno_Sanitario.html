@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sitios de Disposición Final — Colombia</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: #0f1117;
+    color: #e8e8e0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: #0f1117;
+    border-bottom: 1px solid #2a2d38;
+    flex-shrink: 0;
+    gap: 16px;
+  }
+
+  .header-left {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header-title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #e8e8e0;
+  }
+
+  .header-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 1px;
+  }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .legend-item:hover {
+    background: #1c1f2a;
+    border-color: #2a2d38;
+  }
+
+  .legend-item.inactive {
+    opacity: 0.35;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .stats {
+    display: flex;
+    gap: 20px;
+    margin-left: auto;
+  }
+
+  .stat {
+    text-align: right;
+  }
+
+  .stat-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6b7280;
+    margin-top: 2px;
+  }
+
+  #map {
+    flex: 1;
+    width: 100%;
+  }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    padding: 8px 20px;
+    background: #0f1117;
+    border-bottom: 1px solid #1c1f2a;
+    flex-shrink: 0;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #4b5563;
+    margin-right: 4px;
+  }
+
+  .filter-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px solid #2a2d38;
+    background: transparent;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    background: #1c1f2a;
+    color: #e8e8e0;
+    border-color: #3b3f52;
+  }
+
+  .search-wrap {
+    margin-left: auto;
+    position: relative;
+  }
+
+  .search-input {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    background: #1c1f2a;
+    border: 1px solid #2a2d38;
+    border-radius: 3px;
+    padding: 4px 10px 4px 28px;
+    color: #e8e8e0;
+    width: 200px;
+    outline: none;
+  }
+
+  .search-input::placeholder { color: #4b5563; }
+  .search-input:focus { border-color: #3b3f52; }
+
+  .search-icon {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #4b5563;
+    font-size: 12px;
+    pointer-events: none;
+  }
+
+  /* Leaflet popup override */
+  .leaflet-popup-content-wrapper {
+    background: #1c1f2a;
+    border: 1px solid #2a2d38;
+    border-radius: 6px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    color: #e8e8e0;
+    padding: 0;
+  }
+
+  .leaflet-popup-tip { background: #1c1f2a; }
+  .leaflet-popup-content { margin: 0; }
+
+  .popup-inner {
+    padding: 14px 16px;
+    min-width: 220px;
+  }
+
+  .popup-type {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 2px 6px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+
+  .popup-name {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #f3f4f6;
+    margin-bottom: 8px;
+  }
+
+  .popup-meta {
+    font-size: 11px;
+    color: #6b7280;
+    line-height: 1.6;
+  }
+
+  .popup-meta strong {
+    color: #9ca3af;
+    font-weight: 400;
+  }
+
+  .leaflet-popup-close-button {
+    color: #6b7280 !important;
+    top: 8px !important;
+    right: 10px !important;
+  }
+
+  /* Tooltip */
+  .leaflet-tooltip {
+    background: #1c1f2a;
+    border: 1px solid #2a2d38;
+    color: #e8e8e0;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 11px;
+    border-radius: 3px;
+    padding: 3px 8px;
+    box-shadow: none;
+    white-space: nowrap;
+  }
+
+  .leaflet-tooltip-top:before { border-top-color: #2a2d38; }
+
+  /* Count badge */
+  .count-badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 2px;
+    background: #2a2d38;
+    color: #9ca3af;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="header-title">Sitios de Disposición Final · Colombia</div>
+    <div class="header-sub">Fuente: DANE / IDEAM — 249 sitios registrados</div>
+  </div>
+  <div class="legend" id="legend">
+    <div class="legend-item" data-type="Relleno Sanitario" onclick="toggleType(this)">
+      <div class="legend-dot" style="background:#4ade80"></div>
+      <span>Relleno Sanitario <span class="count-badge">160</span></span>
+    </div>
+    <div class="legend-item" data-type="Botadero A Cielo Abierto" onclick="toggleType(this)">
+      <div class="legend-dot" style="background:#f87171"></div>
+      <span>Botadero A Cielo Abierto <span class="count-badge">72</span></span>
+    </div>
+    <div class="legend-item" data-type="Celda De Contingencia" onclick="toggleType(this)">
+      <div class="legend-dot" style="background:#fbbf24"></div>
+      <span>Celda De Contingencia <span class="count-badge">10</span></span>
+    </div>
+    <div class="legend-item" data-type="Celda Transitoria" onclick="toggleType(this)">
+      <div class="legend-dot" style="background:#a78bfa"></div>
+      <span>Celda Transitoria <span class="count-badge">7</span></span>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num" id="visible-count" style="color:#4ade80">249</div>
+      <div class="stat-label">Visibles</div>
+    </div>
+  </div>
+</header>
+
+<div class="filter-bar">
+  <span class="filter-label">Filtrar por departamento:</span>
+  <button class="filter-btn active" onclick="filterDepto('TODOS', this)">Todos</button>
+  <button class="filter-btn" onclick="filterDepto('ANTIOQUIA', this)">Antioquia</button>
+  <button class="filter-btn" onclick="filterDepto('CHOCÓ', this)">Chocó</button>
+  <button class="filter-btn" onclick="filterDepto('BOLÍVAR', this)">Bolívar</button>
+  <button class="filter-btn" onclick="filterDepto('NARIÑO', this)">Nariño</button>
+  <button class="filter-btn" onclick="filterDepto('SANTANDER', this)">Santander</button>
+  <button class="filter-btn" onclick="filterDepto('PUTUMAYO', this)">Putumayo</button>
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input class="search-input" type="text" placeholder="Buscar nombre o municipio..." id="search" oninput="doSearch(this.value)" />
+  </div>
+</div>
+
+<div id="map"></div>
+
+<script>
+const COLORS = {
+  'Relleno Sanitario':       { fill: '#4ade80', border: '#16a34a', r: 7 },
+  'Botadero A Cielo Abierto':{ fill: '#f87171', border: '#dc2626', r: 7 },
+  'Celda De Contingencia':   { fill: '#fbbf24', border: '#d97706', r: 7 },
+  'Celda Transitoria':       { fill: '#a78bfa', border: '#7c3aed', r: 7 },
+};
+
+const DATA = [{"NOMBRE_DEL":"BOTADERO A CIELO ABIERTO \"GUJHIRE MEANE\"","DEPARTAMEN":"AMAZONAS","MUNICIPIO_":"PUERTO NARIÑO","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":-3.631323221999937,"longitude":-70.47199039299994},{"NOMBRE_DEL":"BOTADERO A CIELO ABIERTO AVENIDA TRIBUGA","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"NUQUI","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":5.742491000000094,"longitude":-77.25508599999993},{"NOMBRE_DEL":"BOTADERO A CIELO ABIERTO MORALES","DEPARTAMEN":"BOLIVAR","MUNICIPIO_":"MORALES","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.253712488000083,"longitude":-73.97133170599994},{"NOMBRE_DEL":"BOTADERO ARRASTRADERO","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"NÓVITA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":4.853175845000068,"longitude":-76.61820622099992},{"NOMBRE_DEL":"BOTADERO CARDENITAS","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"ISTMINA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":4.573948414000085,"longitude":-77.02999736799988},{"NOMBRE_DEL":"BOTADERO DE ACHÍ","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"ACHÍ","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.622946764000067,"longitude":-74.47806279499991},{"NOMBRE_DEL":"BOTADERO DE ALTOS DEL ROSARIO","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"ALTOS DEL ROSARIO","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.757478531000064,"longitude":-74.19515687199993},{"NOMBRE_DEL":"BOTADERO DE ARENAL","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"ARENAL","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.459389300000051,"longitude":-73.94299399999994},{"NOMBRE_DEL":"BOTADERO DE ATRATO - YUTU","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"ATRATO","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":5.560640179000074,"longitude":-76.60611566199991},{"NOMBRE_DEL":"BOTADERO DE BAHÍA SOLANO","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"BAHÍA SOLANO","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":6.290155722000066,"longitude":-77.35382474799991},{"NOMBRE_DEL":"BOTADERO DE BAJO BAUDÓ","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"BAJO BAUDÓ","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":5.011843533000046,"longitude":-77.2176704969999},{"NOMBRE_DEL":"BOTADERO DE BARRANCOMINAS","DEPARTAMEN":"GUAINÍA","MUNICIPIO_":"BARRANCOMINAS","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":3.140259266000052,"longitude":-69.69755835099993},{"NOMBRE_DEL":"BOTADERO DE CARMEN DEL DARIÉN","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"CARMEN DEL DARIÉN","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":7.033646544000076,"longitude":-76.9742301729999},{"NOMBRE_DEL":"BOTADERO DE EL CANTÓN DE SAN PABLO","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"EL CANTÓN DEL SAN PABLO","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":5.359661967000089,"longitude":-76.77255624499992},{"NOMBRE_DEL":"BOTADERO DE EL CHARCO","DEPARTAMEN":"NARIÑO","MUNICIPIO_":"EL CHARCO","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":2.183140779000040,"longitude":-77.79572651599995},{"NOMBRE_DEL":"BOTADERO DE EL LITORIAL DEL SAN JUAN","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"EL LITORAL DEL SAN JUAN","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":4.251556300000059,"longitude":-77.35937119999994},{"NOMBRE_DEL":"BOTADERO DE EL PEÑÓN","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"EL PEÑÓN","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.864818852000047,"longitude":-73.91230122099994},{"NOMBRE_DEL":"BOTADERO DE JURADÓ - BOCA VIEJA","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"JURADÓ","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":7.111934490000074,"longitude":-77.77046349999995},{"NOMBRE_DEL":"BOTADERO DE LA JAGUA DEL PILAR","DEPARTAMEN":"LA GUAJIRA","MUNICIPIO_":"LA JAGUA DEL PILAR","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":10.458094099000046,"longitude":-73.07209192699992},{"NOMBRE_DEL":"BOTADERO DE LA POSA","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"ACANDÍ","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.434189857000094,"longitude":-77.28967805899993},{"NOMBRE_DEL":"BOTADERO DE LA TOLA","DEPARTAMEN":"NARIÑO","MUNICIPIO_":"LA TOLA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":2.419306429000077,"longitude":-78.2099103499999},{"NOMBRE_DEL":"BOTADERO DE LÓPEZ DE MICAY","DEPARTAMEN":"CAUCA","MUNICIPIO_":"LÓPEZ DE MICAY","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":3.001541847000050,"longitude":-77.21841495899992},{"NOMBRE_DEL":"BOTADERO DE MAGÜÍ","DEPARTAMEN":"NARIÑO","MUNICIPIO_":"MAGÜÍ","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":1.749612000000064,"longitude":-78.16929999999991},{"NOMBRE_DEL":"BOTADERO DE MARGARITA","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"MARGARITA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":9.054590897000075,"longitude":-74.22582960999995},{"NOMBRE_DEL":"BOTADERO DE MEDIO SAN JUAN","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"MEDIO BAUDÓ","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":5.110392281000093,"longitude":-76.99593071999993},{"NOMBRE_DEL":"BOTADERO DE MONTECRISTO","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"MONTECRISTO","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.017100239000056,"longitude":-74.46342911299989},{"NOMBRE_DEL":"BOTADERO DE MOSQUERA","DEPARTAMEN":"NARIÑO","MUNICIPIO_":"MOSQUERA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":2.442493698000065,"longitude":-78.4388270039999},{"NOMBRE_DEL":"BOTADERO DE NOROSÍ","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"NOROSÍ","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.493285450000089,"longitude":-74.11205374799992},{"NOMBRE_DEL":"BOTADERO DE OLAYA HERRERA","DEPARTAMEN":"NARIÑO","MUNICIPIO_":"OLAYA HERRERA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":2.289892934000074,"longitude":-78.2947162279999},{"NOMBRE_DEL":"BOTADERO DE PAIMADÓ","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"RIO QUITO","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":5.484304500000057,"longitude":-76.74655829999993},{"NOMBRE_DEL":"BOTADERO DE PEDRAZA","DEPARTAMEN":"MAGDALENA","MUNICIPIO_":"PEDRAZA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":10.155984284000056,"longitude":-74.83757506199993},{"NOMBRE_DEL":"BOTADERO DE PUERTO GUZMAN","DEPARTAMEN":"PUTUMAYO","MUNICIPIO_":"PUERTO GUZMÁN","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":0.746432215000079,"longitude":-75.88022978599992},{"NOMBRE_DEL":"BOTADERO DE PUERTO LEGUÍZAMO","DEPARTAMEN":"PUTUMAYO","MUNICIPIO_":"PUERTO LEGUÍZAMO","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":0.059471969000078,"longitude":-75.06479327099991},{"NOMBRE_DEL":"BOTADERO DE REMOLINO","DEPARTAMEN":"MAGDALENA","MUNICIPIO_":"REMOLINO","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":10.648603506000090,"longitude":-74.58106822599989},{"NOMBRE_DEL":"BOTADERO DE ROBERTO PAYÁN","DEPARTAMEN":"NARIÑO","MUNICIPIO_":"ROBERTO PAYAN","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":1.696322222000051,"longitude":-78.24433332999989},{"NOMBRE_DEL":"BOTADERO DE SAN ÁNGEL","DEPARTAMEN":"MAGDALENA","MUNICIPIO_":"SABANAS DE SAN ÁNGEL","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":10.105330275000082,"longitude":-74.26443920199995},{"NOMBRE_DEL":"BOTADERO DE SAN JACINTO DEL CAUCA","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"SAN JACINTO DEL CAUCA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.237510288000074,"longitude":-74.66839997599993},{"NOMBRE_DEL":"BOTADERO DE SAN MARTÍN DE LOBA","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"SAN MARTÍN DE LOBA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.787684693000074,"longitude":-74.01033391899993},{"NOMBRE_DEL":"BOTADERO DE SANTA BÁRBARA","DEPARTAMEN":"NARIÑO","MUNICIPIO_":"SANTA BÁRBARA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":2.302155180000059,"longitude":-77.87437229199992},{"NOMBRE_DEL":"BOTADERO DE SANTA RITA","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"RÍO IRÓ","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":5.172672546000065,"longitude":-76.48446118599992},{"NOMBRE_DEL":"BOTADERO DE SIPI","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"SIPI","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":4.593050000000064,"longitude":-76.38529999999992},{"NOMBRE_DEL":"BOTADERO DE TARAIRA","DEPARTAMEN":"VAUPÉS","MUNICIPIO_":"TARAIRA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":-0.563610999999923,"longitude":-69.63361099999992},{"NOMBRE_DEL":"BOTADERO DE TIMBIQUÍ","DEPARTAMEN":"CAUCA","MUNICIPIO_":"TIMBIQUÍ","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":2.699475127000085,"longitude":-77.49131576499991},{"NOMBRE_DEL":"BOTADERO DE TIQUISO","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"TIQUISIO","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.492346658000091,"longitude":-74.29676533499992},{"NOMBRE_DEL":"BOTADERO DE UNGUÍA","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"UNGUÍA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.117281079000062,"longitude":-77.10372722999995},{"NOMBRE_DEL":"BOTADERO DE VIGÍA DEL FUERTE","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"VIGÍA DEL FUERTE","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":6.453356971000063,"longitude":-76.6950578499999},{"NOMBRE_DEL":"BOTADERO EL ALTO KM 1 VÍA MONFORTH","DEPARTAMEN":"VAUPÉS","MUNICIPIO_":"MITÚ","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":1.240937000000078,"longitude":-70.22096899999991},{"NOMBRE_DEL":"BOTADERO EL AMARILLO","DEPARTAMEN":"CAQUETÁ","MUNICIPIO_":"SOLANO","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":0.699307000000093,"longitude":-75.2537643419999},{"NOMBRE_DEL":"BOTADERO EL BASURERO","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"BOJAYA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":6.474666885000085,"longitude":-77.09933024999992},{"NOMBRE_DEL":"BOTADERO EL OLÍMPICO","DEPARTAMEN":"CAUCA","MUNICIPIO_":"GUAPI","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":2.413266960000057,"longitude":-77.69047530599993},{"NOMBRE_DEL":"BOTADERO EL RESGUARDO","DEPARTAMEN":"META","MUNICIPIO_":"SAN JUANITO","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":4.500090000000047,"longitude":-73.6437499999999},{"NOMBRE_DEL":"BOTADERO EL TABOR","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"SAN JOSE DEL PALMAR","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":4.895194000000071,"longitude":-76.23503299999993},{"NOMBRE_DEL":"BOTADERO GARVAL","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"CÉRTEGUI","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":5.389828229000043,"longitude":-76.52264236799992},{"NOMBRE_DEL":"BOTADERO GUARANDA","DEPARTAMEN":"SUCRE","MUNICIPIO_":"GUARANDA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.383920699000038,"longitude":-74.67618481699992},{"NOMBRE_DEL":"BOTADERO HUECO OSCURO","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"TADÓ","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":5.266101579000067,"longitude":-76.33109547199989},{"NOMBRE_DEL":"BOTADERO KILILI","DEPARTAMEN":"PUTUMAYO","MUNICIPIO_":"PUERTO ASÍS","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":0.478611463000039,"longitude":-76.32820014999992},{"NOMBRE_DEL":"BOTADERO LA GRANJA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"PEQUE","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":7.044180058000047,"longitude":-75.88968843399994},{"NOMBRE_DEL":"BOTADERO LA PIGUA","DEPARTAMEN":"MAGDALENA","MUNICIPIO_":"CONCORDIA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":10.232848012000089,"longitude":-74.77810175299993},{"NOMBRE_DEL":"BOTADERO LAMINA DE LLORÓ","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"LLORÓ","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":5.493611000000047,"longitude":-76.58280099999989},{"NOMBRE_DEL":"BOTADERO LAS BRISAS","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"PINILLOS","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.871586013000076,"longitude":-74.38586740199992},{"NOMBRE_DEL":"BOTADERO MAJAGUAL","DEPARTAMEN":"SUCRE","MUNICIPIO_":"MAJAGUAL","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.546128192000080,"longitude":-74.71037632599989},{"NOMBRE_DEL":"BOTADERO MAPIRIPANA","DEPARTAMEN":"META","MUNICIPIO_":"MAPIRIPÁN","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":2.950083300000080,"longitude":-72.14336111099993},{"NOMBRE_DEL":"BOTADERO MARMOLEJO","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"QUIBDÓ","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":5.938956036000091,"longitude":-76.6636787669999},{"NOMBRE_DEL":"BOTADERO MURINDÓ","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"MURINDÓ","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":6.828773875000082,"longitude":-76.70861350599995},{"NOMBRE_DEL":"BOTADERO PUERTA ROJA","DEPARTAMEN":"META","MUNICIPIO_":"LA MACARENA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":2.262330598000072,"longitude":-74.05805012399992},{"NOMBRE_DEL":"BOTADERO RECICLÍN","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"CANASGORDAS","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":6.814950366000055,"longitude":-76.02689632899995},{"NOMBRE_DEL":"BOTADERO SAN BERNARDO DE SANTA ROSA","DEPARTAMEN":"CAUCA","MUNICIPIO_":"SANTA ROSA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":1.520021790000043,"longitude":-76.5387628059999},{"NOMBRE_DEL":"BOTADERO SERVIMEDIO SAN JUAN","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"MEDIO SAN JUAN","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":4.814229289000066,"longitude":-76.80366777199991},{"NOMBRE_DEL":"BOTADERO TIO GUME","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"CONDOTO","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":5.073715987000075,"longitude":-76.52750631999992},{"NOMBRE_DEL":"BOTADERO TRINCHERA 3 DE MAYO","DEPARTAMEN":"SUCRE","MUNICIPIO_":"SUCRE","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.814327862000091,"longitude":-74.74753041299994},{"NOMBRE_DEL":"BOTADERO VÍA A SAN ANTONIO","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"BARRANCO DE LOBA","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":8.836195538000087,"longitude":-74.16271613599991},{"NOMBRE_DEL":"BOTADERO VIA BUENOS AIRES","DEPARTAMEN":"GUAVIARE","MUNICIPIO_":"MIRAFLORES","TIPO_DE_SI":"Botadero A Cielo Abierto","latitude":1.363974932000085,"longitude":-72.01810950499993},{"NOMBRE_DEL":"CELDA DE CONTINGENCIA BARRIO SANTA ROSA","DEPARTAMEN":"CAUCA","MUNICIPIO_":"JAMBALÓ","TIPO_DE_SI":"Celda De Contingencia","latitude":2.849801996000050,"longitude":-76.31124917799991},{"NOMBRE_DEL":"CELDA DE CONTINGENCIA CÓRDOBA DE BUENAVISTA","DEPARTAMEN":"VALLE DEL CAUCA","MUNICIPIO_":"BUENAVENTURA","TIPO_DE_SI":"Celda De Contingencia","latitude":3.878904100000058,"longitude":-76.9136793999999},{"NOMBRE_DEL":"CELDA DE CONTINGENCIA DE SUCRE","DEPARTAMEN":"CAUCA","MUNICIPIO_":"SUCRE","TIPO_DE_SI":"Celda De Contingencia","latitude":2.040556000000044,"longitude":-76.93638899999989},{"NOMBRE_DEL":"CELDA DE CONTINGENCIA EL ALGARROBO","DEPARTAMEN":"GUAVIARE","MUNICIPIO_":"SAN JOSÉ DEL GUAVIARE","TIPO_DE_SI":"Celda De Contingencia","latitude":2.484494026000052,"longitude":-71.91798269099989},{"NOMBRE_DEL":"CELDA DE CONTINGENCIA EL CORTIJO","DEPARTAMEN":"CAUCA","MUNICIPIO_":"PUERTO TEJADA","TIPO_DE_SI":"Celda De Contingencia","latitude":3.233678000000056,"longitude":-76.3910449999999},{"NOMBRE_DEL":"CELDA DE CONTINGENCIA EL DIAMANTE","DEPARTAMEN":"CAQUETÁ","MUNICIPIO_":"MILÁN","TIPO_DE_SI":"Celda De Contingencia","latitude":1.146692551000054,"longitude":-75.38664762299992},{"NOMBRE_DEL":"CELDA DE CONTINGENCIA EL PORVENIR","DEPARTAMEN":"PUTUMAYO","MUNICIPIO_":"SAN MIGUEL","TIPO_DE_SI":"Celda De Contingencia","latitude":0.305873828000075,"longitude":-76.8577578779999},{"NOMBRE_DEL":"CELDA DE CONTINGENCIA LA CUCHILLA","DEPARTAMEN":"CAUCA","MUNICIPIO_":"BOLÍVAR","TIPO_DE_SI":"Celda De Contingencia","latitude":1.853951938000088,"longitude":-76.96337453799991},{"NOMBRE_DEL":"CELDA DE CONTINGENCIA LA ESMERALDA","DEPARTAMEN":"PUTUMAYO","MUNICIPIO_":"PUERTO CAICEDO","TIPO_DE_SI":"Celda De Contingencia","latitude":0.725071872000067,"longitude":-76.48100764499992},{"NOMBRE_DEL":"CELDA DE CONTINGENCIA LA VOZ DE LA TIERRA","DEPARTAMEN":"TOLIMA","MUNICIPIO_":"RONCESVALLES","TIPO_DE_SI":"Celda De Contingencia","latitude":4.010833000000043,"longitude":-75.60527799999993},{"NOMBRE_DEL":"CELDA TRANSITORIA FINCA ARIZONA","DEPARTAMEN":"TOLIMA","MUNICIPIO_":"PURIFICACIÓN","TIPO_DE_SI":"Celda Transitoria","latitude":3.826504000000067,"longitude":-74.96720999999991},{"NOMBRE_DEL":"CELDA TRANSITORIA JUANCHITO","DEPARTAMEN":"META","MUNICIPIO_":"EL CALVARIO","TIPO_DE_SI":"Celda Transitoria","latitude":4.352390347000032,"longitude":-73.71438482899991},{"NOMBRE_DEL":"CELDA TRANSITORIA LA MELVA","DEPARTAMEN":"CAQUETÁ","MUNICIPIO_":"PUERTO RICO","TIPO_DE_SI":"Celda Transitoria","latitude":2.018940891000060,"longitude":-75.07308626699995},{"NOMBRE_DEL":"CELDA TRANSITORIA LA PRIMAVERA","DEPARTAMEN":"PUTUMAYO","MUNICIPIO_":"VALLE DEL GUAMUEZ","TIPO_DE_SI":"Celda Transitoria","latitude":0.412963688000048,"longitude":-76.88409289499994},{"NOMBRE_DEL":"CELDA TRANSITORIA LAS TAPIAS","DEPARTAMEN":"TOLIMA","MUNICIPIO_":"CHAPARRAL","TIPO_DE_SI":"Celda Transitoria","latitude":3.743693084000080,"longitude":-75.58986634199994},{"NOMBRE_DEL":"CELDA TRANSITORIA LOS POMOS","DEPARTAMEN":"CAUCA","MUNICIPIO_":"PIAMONTE","TIPO_DE_SI":"Celda Transitoria","latitude":1.072300000000037,"longitude":-76.19123999999992},{"NOMBRE_DEL":"CELDA TRANSITORIA PARAJE LOS MANGOS","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"URAMITA","TIPO_DE_SI":"Celda Transitoria","latitude":6.913916874000052,"longitude":-76.13318557499991},{"NOMBRE_DEL":"PARQUE AMBIENTAL REGIONAL DE PIJIÑO DEL CARMEN","DEPARTAMEN":"MAGDALENA","MUNICIPIO_":"PIJINO DEL CARMEN","TIPO_DE_SI":"Relleno Sanitario","latitude":9.386111000000076,"longitude":-74.38666699999993},{"NOMBRE_DEL":"PLANTA DE TRATAMIENTO EL GAVÁN","DEPARTAMEN":"CASANARE","MUNICIPIO_":"PAZ DE ARIPORO","TIPO_DE_SI":"Relleno Sanitario","latitude":5.823852800000051,"longitude":-71.92765279999993},{"NOMBRE_DEL":"PLANTA INDUSTRIAL PROCESADORA DE RESIDUOS SOLIDOS","DEPARTAMEN":"CASANARE","MUNICIPIO_":"TAURAMENA","TIPO_DE_SI":"Relleno Sanitario","latitude":5.033611111000076,"longitude":-72.75916666699993},{"NOMBRE_DEL":"RELLENO MUNICIPAL DE ALPUJARRA","DEPARTAMEN":"TOLIMA","MUNICIPIO_":"ALPUJARRA","TIPO_DE_SI":"Relleno Sanitario","latitude":3.390015063000078,"longitude":-74.94078232399994},{"NOMBRE_DEL":"RELLENO MUNICIPAL DEL SABANALARGA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"SABANALARGA","TIPO_DE_SI":"Relleno Sanitario","latitude":6.901000506000064,"longitude":-75.79222753399993},{"NOMBRE_DEL":"RELLENO SANITARIO AGUAS VIVAS","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"SAN ANDRÉS DE CUERQUÍA","TIPO_DE_SI":"Relleno Sanitario","latitude":6.914563506000097,"longitude":-75.66517777999991},{"NOMBRE_DEL":"RELLENO SANITARIO ALEJANDRIA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"ALEJANDRIA","TIPO_DE_SI":"Relleno Sanitario","latitude":6.365534125000075,"longitude":-75.09059702199993},{"NOMBRE_DEL":"RELLENO SANITARIO AMBIENTE SONSÓN","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"SONSÓN","TIPO_DE_SI":"Relleno Sanitario","latitude":5.713120000000061,"longitude":-75.35194999999992},{"NOMBRE_DEL":"RELLENO SANITARIO ANTANAS","DEPARTAMEN":"NARIÑO","MUNICIPIO_":"PASTO","TIPO_DE_SI":"Relleno Sanitario","latitude":1.276895000000080,"longitude":-77.26127399999989},{"NOMBRE_DEL":"RELLENO SANITARIO BARBACOAS","DEPARTAMEN":"NARIÑO","MUNICIPIO_":"BARBACOAS","TIPO_DE_SI":"Relleno Sanitario","latitude":1.445637739000073,"longitude":-78.15621072399995},{"NOMBRE_DEL":"RELLENO SANITARIO BETÉ","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"MEDIO ATRATO","TIPO_DE_SI":"Relleno Sanitario","latitude":6.033880098000064,"longitude":-76.6734697019999},{"NOMBRE_DEL":"RELLENO SANITARIO BIORGÁNICOS DEL SUR DEL HUILA","DEPARTAMEN":"HUILA","MUNICIPIO_":"PITALITO","TIPO_DE_SI":"Relleno Sanitario","latitude":1.872644600000054,"longitude":-76.1231767999999},{"NOMBRE_DEL":"RELLENO SANITARIO BLUE LIZARD","DEPARTAMEN":"SAN ANDRÉS","MUNICIPIO_":"PROVIDENCIA","TIPO_DE_SI":"Relleno Sanitario","latitude":13.353272355000056,"longitude":-81.37390661199991},{"NOMBRE_DEL":"RELLENO SANITARIO BRISAS DEL CRAVO","DEPARTAMEN":"ARAUCA","MUNICIPIO_":"TAME","TIPO_DE_SI":"Relleno Sanitario","latitude":6.265380000000047,"longitude":-71.52111399999991},{"NOMBRE_DEL":"RELLENO SANITARIO BUCHELLY","DEPARTAMEN":"NARIÑO","MUNICIPIO_":"TUMACO","TIPO_DE_SI":"Relleno Sanitario","latitude":1.686810000000097,"longitude":-78.77140999999995},{"NOMBRE_DEL":"RELLENO SANITARIO BUENA VISTA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"LA UNIÓN","TIPO_DE_SI":"Relleno Sanitario","latitude":5.940434879000068,"longitude":-75.3542894599999},{"NOMBRE_DEL":"RELLENO SANITARIO BUENAVISTA III","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"ANGOSTURA","TIPO_DE_SI":"Relleno Sanitario","latitude":6.885277778000048,"longitude":-75.3352777779999},{"NOMBRE_DEL":"RELLENO SANITARIO CAMPO NUEVO","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"ALTO BAUDÓ","TIPO_DE_SI":"Relleno Sanitario","latitude":5.636744192000045,"longitude":-77.08421619799992},{"NOMBRE_DEL":"RELLENO SANITARIO CARAPACHO","DEPARTAMEN":"BOYACÁ","MUNICIPIO_":"CHIQUINQUIRÁ","TIPO_DE_SI":"Relleno Sanitario","latitude":5.631468186000065,"longitude":-73.7322341599999},{"NOMBRE_DEL":"RELLENO SANITARIO CENTRO INDUSTRIAL DE RESIDUOS - EL TEJAR","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"TURBO","TIPO_DE_SI":"Relleno Sanitario","latitude":8.073507000000061,"longitude":-76.6512249999999},{"NOMBRE_DEL":"RELLENO SANITARIO CERRO DE LA VIRGEN","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"CONCEPCIÓN","TIPO_DE_SI":"Relleno Sanitario","latitude":6.383000000000048,"longitude":-75.25260199999991},{"NOMBRE_DEL":"RELLENO SANITARIO CHICAO","DEPARTAMEN":"CAQUETÁ","MUNICIPIO_":"CURILLO","TIPO_DE_SI":"Relleno Sanitario","latitude":1.058355091000067,"longitude":-75.95236577899993},{"NOMBRE_DEL":"RELLENO SANITARIO CIÉNAGA GRANDE DE SANTAMARTA","DEPARTAMEN":"MAGDALENA","MUNICIPIO_":"SALAMINA","TIPO_DE_SI":"Relleno Sanitario","latitude":10.485333330000053,"longitude":-74.78403332999994},{"NOMBRE_DEL":"RELLENO SANITARIO CONCORDIA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"CONCORDIA","TIPO_DE_SI":"Relleno Sanitario","latitude":6.057468678000075,"longitude":-75.9001467839999},{"NOMBRE_DEL":"RELLENO SANITARIO CUATRO VIENTOS","DEPARTAMEN":"VICHADA","MUNICIPIO_":"CUMARIBO","TIPO_DE_SI":"Relleno Sanitario","latitude":4.262455376000051,"longitude":-69.52140384999988},{"NOMBRE_DEL":"RELLENO SANITARIO DABEIBA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"DABEIBA","TIPO_DE_SI":"Relleno Sanitario","latitude":6.992243782000061,"longitude":-76.31426328399992},{"NOMBRE_DEL":"RELLENO SANITARIO DE ANDES (ALTO DEL RAYO)","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"ANDES","TIPO_DE_SI":"Relleno Sanitario","latitude":5.687450000000058,"longitude":-75.8896499999999},{"NOMBRE_DEL":"RELLENO SANITARIO DE ARGELIA (LA MINA)","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"ARGELIA","TIPO_DE_SI":"Relleno Sanitario","latitude":5.708114524000064,"longitude":-75.09469795399991},{"NOMBRE_DEL":"RELLENO SANITARIO DE BELMIRA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"BELMIRA","TIPO_DE_SI":"Relleno Sanitario","latitude":6.590257000000066,"longitude":-75.69055868999992},{"NOMBRE_DEL":"RELLENO SANITARIO DE CAICEDO","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"CAICEDO","TIPO_DE_SI":"Relleno Sanitario","latitude":6.404891940000085,"longitude":-75.97761939999992},{"NOMBRE_DEL":"RELLENO SANITARIO DE CIUDAD BOLÍVAR","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"CIUDAD BOLÍVAR","TIPO_DE_SI":"Relleno Sanitario","latitude":5.800000000000074,"longitude":-76.01999999999991},{"NOMBRE_DEL":"RELLENO SANITARIO DE CUMBITARA","DEPARTAMEN":"NARIÑO","MUNICIPIO_":"CUMBITARA","TIPO_DE_SI":"Relleno Sanitario","latitude":1.725590110000034,"longitude":-77.5928163719999},{"NOMBRE_DEL":"RELLENO SANITARIO DE DIBULLA","DEPARTAMEN":"LA GUAJIRA","MUNICIPIO_":"DIBULLA","TIPO_DE_SI":"Relleno Sanitario","latitude":11.090343322000080,"longitude":-73.43567026099991},{"NOMBRE_DEL":"RELLENO SANITARIO DE FRANCISCO PIZARRO","DEPARTAMEN":"NARIÑO","MUNICIPIO_":"FRANCISCO PIZARRO","TIPO_DE_SI":"Relleno Sanitario","latitude":2.088531926000084,"longitude":-78.5919309869999},{"NOMBRE_DEL":"RELLENO SANITARIO DE PUERTO CARREÑO EL MEREY","DEPARTAMEN":"VICHADA","MUNICIPIO_":"PUERTO CARRENO","TIPO_DE_SI":"Relleno Sanitario","latitude":6.221844000000090,"longitude":-67.54104699999993},{"NOMBRE_DEL":"RELLENO SANITARIO DE PUERTO RONDÓN","DEPARTAMEN":"ARAUCA","MUNICIPIO_":"PUERTO RONDÓN","TIPO_DE_SI":"Relleno Sanitario","latitude":6.411761829000046,"longitude":-70.96678964199992},{"NOMBRE_DEL":"RELLENO SANITARIO DE SAN MIGUEL DE SEMA","DEPARTAMEN":"BOYACÁ","MUNICIPIO_":"SAN MIGUEL DE SEMA","TIPO_DE_SI":"Relleno Sanitario","latitude":5.532326921000047,"longitude":-73.7471589779999},{"NOMBRE_DEL":"RELLENO SANITARIO DEL MUNICIPIO DE ANGELÓPOLIS","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"ANGELÓPOLIS","TIPO_DE_SI":"Relleno Sanitario","latitude":6.103305600000053,"longitude":-75.71963888899995},{"NOMBRE_DEL":"RELLENO SANITARIO DEL MUNICIPIO DE CARURU","DEPARTAMEN":"VAUPÉS","MUNICIPIO_":"CARURÚ","TIPO_DE_SI":"Relleno Sanitario","latitude":1.017083330000049,"longitude":-71.30683329999994},{"NOMBRE_DEL":"RELLENO SANITARIO DOÑA JUANA","DEPARTAMEN":"BOGOTÁ, D.C.","MUNICIPIO_":"BOGOTÁ, D.C.","TIPO_DE_SI":"Relleno Sanitario","latitude":4.316110828000080,"longitude":-74.18107585899992},{"NOMBRE_DEL":"RELLENO SANITARIO DOÑA MARÍA","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"BAGADÓ","TIPO_DE_SI":"Relleno Sanitario","latitude":5.417777778000068,"longitude":-76.4177777779999},{"NOMBRE_DEL":"RELLENO SANITARIO EL BOGANTE","DEPARTAMEN":"CASANARE","MUNICIPIO_":"OROCUE","TIPO_DE_SI":"Relleno Sanitario","latitude":4.915139134000069,"longitude":-71.59873965799993},{"NOMBRE_DEL":"RELLENO SANITARIO EL BOSQUE","DEPARTAMEN":"CAQUETÁ","MUNICIPIO_":"EL DONCELLO","TIPO_DE_SI":"Relleno Sanitario","latitude":1.640000000000032,"longitude":-75.2899999999999},{"NOMBRE_DEL":"RELLENO SANITARIO EL BOSQUE","DEPARTAMEN":"SANTANDER","MUNICIPIO_":"SANTA HELENA DEL OPÓN","TIPO_DE_SI":"Relleno Sanitario","latitude":6.408907340000048,"longitude":-73.58206608899991},{"NOMBRE_DEL":"RELLENO SANITARIO EL CAIMO","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"SAN CARLOS","TIPO_DE_SI":"Relleno Sanitario","latitude":6.194998000000051,"longitude":-74.9559549999999},{"NOMBRE_DEL":"RELLENO SANITARIO EL CAIRO","DEPARTAMEN":"CAQUETÁ","MUNICIPIO_":"SAN JOSÉ DEL FRAGUA","TIPO_DE_SI":"Relleno Sanitario","latitude":1.304362927000059,"longitude":-76.10918011299994},{"NOMBRE_DEL":"RELLENO SANITARIO EL CARMEN DE VIBORAL","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"EL CARMEN DE VIBORAL","TIPO_DE_SI":"Relleno Sanitario","latitude":5.980167488000070,"longitude":-75.26802964099993},{"NOMBRE_DEL":"RELLENO SANITARIO EL CARRASCO","DEPARTAMEN":"SANTANDER","MUNICIPIO_":"BUCARAMANGA","TIPO_DE_SI":"Relleno Sanitario","latitude":7.155390140000073,"longitude":-73.11178576399993},{"NOMBRE_DEL":"RELLENO SANITARIO EL CASCAJAR","DEPARTAMEN":"CASANARE","MUNICIPIO_":"YOPAL","TIPO_DE_SI":"Relleno Sanitario","latitude":5.414128216000051,"longitude":-72.29698061899995},{"NOMBRE_DEL":"RELLENO SANITARIO EL CLAVO","DEPARTAMEN":"ATLÁNTICO","MUNICIPIO_":"PALMAR DE VARELA","TIPO_DE_SI":"Relleno Sanitario","latitude":10.694812386000080,"longitude":-74.77015084699991},{"NOMBRE_DEL":"RELLENO SANITARIO EL COLIBRÍ","DEPARTAMEN":"GUAINÍA","MUNICIPIO_":"INÍRIDA","TIPO_DE_SI":"Relleno Sanitario","latitude":3.831767100000086,"longitude":-67.92259669999993},{"NOMBRE_DEL":"RELLENO SANITARIO EL CREDO","DEPARTAMEN":"NARIÑO","MUNICIPIO_":"LOS ANDES","TIPO_DE_SI":"Relleno Sanitario","latitude":1.672599775000045,"longitude":-77.71054548299992},{"NOMBRE_DEL":"RELLENO SANITARIO EL CUCHARO","DEPARTAMEN":"SANTANDER","MUNICIPIO_":"SAN GIL","TIPO_DE_SI":"Relleno Sanitario","latitude":6.553808333000058,"longitude":-73.18841666999992},{"NOMBRE_DEL":"RELLENO SANITARIO EL DIAMANTE","DEPARTAMEN":"GUAVIARE","MUNICIPIO_":"CALAMAR","TIPO_DE_SI":"Relleno Sanitario","latitude":1.613294248000035,"longitude":-73.03334412299994},{"NOMBRE_DEL":"RELLENO SANITARIO EL JAGUAR","DEPARTAMEN":"AMAZONAS","MUNICIPIO_":"LETICIA","TIPO_DE_SI":"Relleno Sanitario","latitude":-3.999999899999916,"longitude":-69.9930799999999},{"NOMBRE_DEL":"RELLENO SANITARIO EL JARDÍN","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"CARAMANTA","TIPO_DE_SI":"Relleno Sanitario","latitude":5.556118000000081,"longitude":-75.63651399999992},{"NOMBRE_DEL":"RELLENO SANITARIO EL OASIS","DEPARTAMEN":"SUCRE","MUNICIPIO_":"SINCELEJO","TIPO_DE_SI":"Relleno Sanitario","latitude":9.287000000000090,"longitude":-75.3707999999999},{"NOMBRE_DEL":"RELLENO SANITARIO EL PESCADO","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"PUERTO NARE","TIPO_DE_SI":"Relleno Sanitario","latitude":6.259182000000060,"longitude":-74.6018489999999},{"NOMBRE_DEL":"RELLENO SANITARIO EL PLACER","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"GUADALUPE","TIPO_DE_SI":"Relleno Sanitario","latitude":6.819966300000086,"longitude":-75.25758329999992},{"NOMBRE_DEL":"RELLENO SANITARIO EL PORVENIR","DEPARTAMEN":"SANTANDER","MUNICIPIO_":"SAN JOAQUÍN","TIPO_DE_SI":"Relleno Sanitario","latitude":6.459879822000060,"longitude":-72.85471882999991},{"NOMBRE_DEL":"RELLENO SANITARIO EL TOTUMO","DEPARTAMEN":"ARAUCA","MUNICIPIO_":"CRAVO NORTE","TIPO_DE_SI":"Relleno Sanitario","latitude":6.346718779000062,"longitude":-70.06982925199992},{"NOMBRE_DEL":"RELLENO SANITARIO EL YARUMO","DEPARTAMEN":"PUTUMAYO","MUNICIPIO_":"ORITO","TIPO_DE_SI":"Relleno Sanitario","latitude":0.673754278000043,"longitude":-76.94314661599992},{"NOMBRE_DEL":"RELLENO SANITARIO GIRS TIBU","DEPARTAMEN":"NORTE DE SANTANDER","MUNICIPIO_":"TIBÚ","TIPO_DE_SI":"Relleno Sanitario","latitude":8.665545000000069,"longitude":-72.69654399999989},{"NOMBRE_DEL":"RELLENO SANITARIO GRANJA EXPERIMENTAL","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"SAN VICENTE FERRER","TIPO_DE_SI":"Relleno Sanitario","latitude":6.310387521000051,"longitude":-75.3274016279999},{"NOMBRE_DEL":"RELLENO SANITARIO GRANJA PARA EL MANEJO INTEGRAL","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"EL SANTUARIO","TIPO_DE_SI":"Relleno Sanitario","latitude":6.141228000000064,"longitude":-75.2747379999999},{"NOMBRE_DEL":"RELLENO SANITARIO GUARATARA","DEPARTAMEN":"META","MUNICIPIO_":"GRANADA","TIPO_DE_SI":"Relleno Sanitario","latitude":3.566478000000086,"longitude":-73.68769199999991},{"NOMBRE_DEL":"RELLENO SANITARIO GUAYABAL","DEPARTAMEN":"NORTE DE SANTANDER","MUNICIPIO_":"SAN JOSÉ DE CÚCUTA","TIPO_DE_SI":"Relleno Sanitario","latitude":8.021234000000048,"longitude":-72.50240599999994},{"NOMBRE_DEL":"RELLENO SANITARIO GUYACANES 2","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"TARSO","TIPO_DE_SI":"Relleno Sanitario","latitude":5.871064557000069,"longitude":-75.82871144299992},{"NOMBRE_DEL":"RELLENO SANITARIO LA ARBOLEDA","DEPARTAMEN":"CHOCÓ","MUNICIPIO_":"EL CARMEN DE ATRATO","TIPO_DE_SI":"Relleno Sanitario","latitude":5.850722000000076,"longitude":-76.14274999999994},{"NOMBRE_DEL":"RELLENO SANITARIO LA AURORA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"YALÍ","TIPO_DE_SI":"Relleno Sanitario","latitude":6.683282000000080,"longitude":-74.85657199999991},{"NOMBRE_DEL":"RELLENO SANITARIO LA CANDELARIA","DEPARTAMEN":"SUCRE","MUNICIPIO_":"COROZAL","TIPO_DE_SI":"Relleno Sanitario","latitude":9.309148000000040,"longitude":-75.26668599999994},{"NOMBRE_DEL":"RELLENO SANITARIO LA CORTADA","DEPARTAMEN":"NORTE DE SANTANDER","MUNICIPIO_":"PAMPLONA","TIPO_DE_SI":"Relleno Sanitario","latitude":7.379057623000042,"longitude":-72.67590347599992},{"NOMBRE_DEL":"RELLENO SANITARIO LA DORADA","DEPARTAMEN":"CALDAS","MUNICIPIO_":"LA DORADA","TIPO_DE_SI":"Relleno Sanitario","latitude":5.555403000000069,"longitude":-74.70342099999993},{"NOMBRE_DEL":"RELLENO SANITARIO LA ESMERALDA","DEPARTAMEN":"CALDAS","MUNICIPIO_":"MANIZALES","TIPO_DE_SI":"Relleno Sanitario","latitude":5.080355556000085,"longitude":-75.5089249999999},{"NOMBRE_DEL":"RELLENO SANITARIO LA ESPAÑOLA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"AMALFI","TIPO_DE_SI":"Relleno Sanitario","latitude":6.917166670000086,"longitude":-75.06611666999993},{"NOMBRE_DEL":"RELLENO SANITARIO LA ESPERANZA","DEPARTAMEN":"CASANARE","MUNICIPIO_":"VILLANUEVA","TIPO_DE_SI":"Relleno Sanitario","latitude":4.615555560000068,"longitude":-72.95166666699993},{"NOMBRE_DEL":"RELLENO SANITARIO LA FLORIDA","DEPARTAMEN":"SANTANDER","MUNICIPIO_":"CIMITARRA","TIPO_DE_SI":"Relleno Sanitario","latitude":6.371042000000044,"longitude":-73.99347499999993},{"NOMBRE_DEL":"RELLENO SANITARIO LA GLORITA","DEPARTAMEN":"RISARALDA","MUNICIPIO_":"PEREIRA","TIPO_DE_SI":"Relleno Sanitario","latitude":4.853000000000070,"longitude":-75.79779999999994},{"NOMBRE_DEL":"RELLENO SANITARIO LA GRANJA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"CAROLINA","TIPO_DE_SI":"Relleno Sanitario","latitude":7.044180058000047,"longitude":-75.88968843399994},{"NOMBRE_DEL":"RELLENO SANITARIO LA MADERA","DEPARTAMEN":"NORTE DE SANTANDER","MUNICIPIO_":"OCAÑA","TIPO_DE_SI":"Relleno Sanitario","latitude":8.257702778000070,"longitude":-73.3286166699999},{"NOMBRE_DEL":"RELLENO SANITARIO LA MARÍA","DEPARTAMEN":"MAGDALENA","MUNICIPIO_":"CIÉNAGA","TIPO_DE_SI":"Relleno Sanitario","latitude":10.992408093000051,"longitude":-74.20641761099995},{"NOMBRE_DEL":"RELLENO SANITARIO LA MIEL","DEPARTAMEN":"TOLIMA","MUNICIPIO_":"IBAGUÉ","TIPO_DE_SI":"Relleno Sanitario","latitude":4.362200000000093,"longitude":-75.06849999999991},{"NOMBRE_DEL":"RELLENO SANITARIO LA PRADERA","DEPARTAMEN":"CAQUETÁ","MUNICIPIO_":"CARTAGENA DEL CHAIRA","TIPO_DE_SI":"Relleno Sanitario","latitude":1.320009000000073,"longitude":-74.85371999999995},{"NOMBRE_DEL":"RELLENO SANITARIO LA TABACA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"PUERTO BERRÍO","TIPO_DE_SI":"Relleno Sanitario","latitude":6.550230000000064,"longitude":-74.45965799999992},{"NOMBRE_DEL":"RELLENO SANITARIO LA VERA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"SEGOVIA","TIPO_DE_SI":"Relleno Sanitario","latitude":7.081000000000076,"longitude":-74.71299999999991},{"NOMBRE_DEL":"RELLENO SANITARIO LA VICTORIA","DEPARTAMEN":"NARIÑO","MUNICIPIO_":"IPIALES","TIPO_DE_SI":"Relleno Sanitario","latitude":0.558614220000040,"longitude":-77.37035692299992},{"NOMBRE_DEL":"RELLENO SANITARIO LAS AMÉRICAS","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"YONDÓ","TIPO_DE_SI":"Relleno Sanitario","latitude":6.925158191000043,"longitude":-74.15824112999991},{"NOMBRE_DEL":"RELLENO SANITARIO LAS BATEAS","DEPARTAMEN":"CESAR","MUNICIPIO_":"AGUACHICA","TIPO_DE_SI":"Relleno Sanitario","latitude":8.289306000000070,"longitude":-73.65269299999994},{"NOMBRE_DEL":"RELLENO SANITARIO LAS GARZAS","DEPARTAMEN":"ARAUCA","MUNICIPIO_":"ARAUCA","TIPO_DE_SI":"Relleno Sanitario","latitude":6.969778000000073,"longitude":-70.86443999999993},{"NOMBRE_DEL":"RELLENO SANITARIO LAS HOYERAS","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"PEÑOL","TIPO_DE_SI":"Relleno Sanitario","latitude":6.232396367000091,"longitude":-75.2235090549999},{"NOMBRE_DEL":"RELLENO SANITARIO LAS MERCEDES","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"BETANIA","TIPO_DE_SI":"Relleno Sanitario","latitude":5.727080814000087,"longitude":-75.9868912959999},{"NOMBRE_DEL":"RELLENO SANITARIO LOMA DEL CORRAL","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"ITUANGO","TIPO_DE_SI":"Relleno Sanitario","latitude":7.176929000000082,"longitude":-75.74851796999991},{"NOMBRE_DEL":"RELLENO SANITARIO LOS ÁNGELES","DEPARTAMEN":"HUILA","MUNICIPIO_":"NEIVA","TIPO_DE_SI":"Relleno Sanitario","latitude":2.998554000000074,"longitude":-75.23474899999991},{"NOMBRE_DEL":"RELLENO SANITARIO LOS CEDROS","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"ANZÁ","TIPO_DE_SI":"Relleno Sanitario","latitude":6.304287000000045,"longitude":-75.85279999999993},{"NOMBRE_DEL":"RELLENO SANITARIO LOS CORAZONES","DEPARTAMEN":"CESAR","MUNICIPIO_":"VALLEDUPAR","TIPO_DE_SI":"Relleno Sanitario","latitude":10.546355000000070,"longitude":-73.24340399999994},{"NOMBRE_DEL":"RELLENO SANITARIO LOS EUCALIPTOS","DEPARTAMEN":"CALDAS","MUNICIPIO_":"AGUADAS","TIPO_DE_SI":"Relleno Sanitario","latitude":5.604616000000067,"longitude":-75.43254169999993},{"NOMBRE_DEL":"RELLENO SANITARIO LOS GUAICOS","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"SAN RAFAEL","TIPO_DE_SI":"Relleno Sanitario","latitude":6.310744530000076,"longitude":-74.99858651599993},{"NOMBRE_DEL":"RELLENO SANITARIO LOS MOLINOS","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"ABEJORRAL","TIPO_DE_SI":"Relleno Sanitario","latitude":5.803728972000051,"longitude":-75.43847448799994},{"NOMBRE_DEL":"RELLENO SANITARIO LOS ROBLES","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"SAN JOSE DE LA MONTANA","TIPO_DE_SI":"Relleno Sanitario","latitude":6.823258912000077,"longitude":-75.67770826199994},{"NOMBRE_DEL":"RELLENO SANITARIO MAGIC GARDEN","DEPARTAMEN":"SAN ANDRÉS","MUNICIPIO_":"SAN ANDRÉS","TIPO_DE_SI":"Relleno Sanitario","latitude":12.554538300000050,"longitude":-81.72668861099993},{"NOMBRE_DEL":"RELLENO SANITARIO MIRAFLORES DE GUATAPÉ","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"GUATAPÉ","TIPO_DE_SI":"Relleno Sanitario","latitude":6.245775609000078,"longitude":-75.15851892299992},{"NOMBRE_DEL":"RELLENO SANITARIO MIRAFLORES DE LIBORINA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"LIBORINA","TIPO_DE_SI":"Relleno Sanitario","latitude":6.682405000000076,"longitude":-75.74851796999991},{"NOMBRE_DEL":"RELLENO SANITARIO MUNICIPAL DE GIRALDO","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"GIRALDO","TIPO_DE_SI":"Relleno Sanitario","latitude":6.663084715000069,"longitude":-75.94807688499992},{"NOMBRE_DEL":"RELLENO SANITARIO MUNICIPAL LA VEGA","DEPARTAMEN":"CALDAS","MUNICIPIO_":"MARQUETALIA","TIPO_DE_SI":"Relleno Sanitario","latitude":5.291873000000066,"longitude":-75.07785699999992},{"NOMBRE_DEL":"RELLENO SANITARIO MUNICIPIO DE GRANADA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"GRANADA","TIPO_DE_SI":"Relleno Sanitario","latitude":6.147197000000064,"longitude":-75.16459199999991},{"NOMBRE_DEL":"RELLENO SANITARIO NUEVO MONDOÑEDO","DEPARTAMEN":"CUNDINAMARCA","MUNICIPIO_":"BOJACÁ","TIPO_DE_SI":"Relleno Sanitario","latitude":4.645555556000082,"longitude":-74.2858333329999},{"NOMBRE_DEL":"RELLENO SANITARIO NUEVO RETIRO - SOLITA","DEPARTAMEN":"CAQUETÁ","MUNICIPIO_":"SOLITA","TIPO_DE_SI":"Relleno Sanitario","latitude":0.909265457000063,"longitude":-75.63840045499995},{"NOMBRE_DEL":"RELLENO SANITARIO PACANDÉ","DEPARTAMEN":"TOLIMA","MUNICIPIO_":"NATAGAIMA","TIPO_DE_SI":"Relleno Sanitario","latitude":3.588519030000045,"longitude":-75.11450921599992},{"NOMBRE_DEL":"RELLENO SANITARIO PARQUE AMBIENTAL ANDALUCÍA","DEPARTAMEN":"QUINDÍO","MUNICIPIO_":"MONTENEGRO","TIPO_DE_SI":"Relleno Sanitario","latitude":4.457587847000077,"longitude":-75.82940804999991},{"NOMBRE_DEL":"RELLENO SANITARIO PARQUE AMBIENTAL BECERRIL","DEPARTAMEN":"CESAR","MUNICIPIO_":"BOSCONIA","TIPO_DE_SI":"Relleno Sanitario","latitude":9.946280307000045,"longitude":-73.86626671399995},{"NOMBRE_DEL":"RELLENO SANITARIO PARQUE AMBIENTAL BIOGER","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"CARTAGENA DE INDIAS","TIPO_DE_SI":"Relleno Sanitario","latitude":10.258691300000065,"longitude":-75.50933429999992},{"NOMBRE_DEL":"RELLENO SANITARIO PARQUE AMBIENTAL CAMPOALEGRE","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"CAUCASIA","TIPO_DE_SI":"Relleno Sanitario","latitude":8.004989000000080,"longitude":-75.14272499999993},{"NOMBRE_DEL":"RELLENO SANITARIO PARQUE AMBIENTAL LAS ORQUIDEAS","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"URRAO","TIPO_DE_SI":"Relleno Sanitario","latitude":6.336055000000047,"longitude":-76.1438609999999},{"NOMBRE_DEL":"RELLENO SANITARIO PARQUE AMBIENTAL LLANADAS","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"BRICEÑO","TIPO_DE_SI":"Relleno Sanitario","latitude":7.111788461000053,"longitude":-75.5622347379999},{"NOMBRE_DEL":"RELLENO SANITARIO PARQUE AMBIENTAL LOMA DE LOS COCOS","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"TURBANÁ","TIPO_DE_SI":"Relleno Sanitario","latitude":10.272859260000080,"longitude":-75.48079628999993},{"NOMBRE_DEL":"RELLENO SANITARIO PARQUE AMBIENTAL LOS POCITOS","DEPARTAMEN":"ATLÁNTICO","MUNICIPIO_":"GALAPA","TIPO_DE_SI":"Relleno Sanitario","latitude":10.897721024000074,"longitude":-74.8870892189999},{"NOMBRE_DEL":"RELLENO SANITARIO PARQUE AMBIENTAL PALANGANA","DEPARTAMEN":"MAGDALENA","MUNICIPIO_":"SANTA MARTA","TIPO_DE_SI":"Relleno Sanitario","latitude":11.260338100000071,"longitude":-74.15548579999995},{"NOMBRE_DEL":"RELLENO SANITARIO PARQUE AMBIENTAL PARAJE PUENTE ROTO","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"REMEDIOS","TIPO_DE_SI":"Relleno Sanitario","latitude":7.020776368000042,"longitude":-74.68347842799994},{"NOMBRE_DEL":"RELLENO SANITARIO PARQUE AMBIENTAL PIRGUA","DEPARTAMEN":"BOYACÁ","MUNICIPIO_":"TUNJA","TIPO_DE_SI":"Relleno Sanitario","latitude":5.575272050000086,"longitude":-73.32156089999994},{"NOMBRE_DEL":"RELLENO SANITARIO PARQUE AMBIENTAL TAYARÚ","DEPARTAMEN":"CAQUETÁ","MUNICIPIO_":"FLORENCIA","TIPO_DE_SI":"Relleno Sanitario","latitude":1.544917000000044,"longitude":-75.6077560999999},{"NOMBRE_DEL":"RELLENO SANITARIO PARQUE AMBIENTAL VERDE LAS TANGARAS","DEPARTAMEN":"CÓRDOBA","MUNICIPIO_":"CIÉNAGA DE ORO","TIPO_DE_SI":"Relleno Sanitario","latitude":8.855140000000056,"longitude":-75.59988299999992},{"NOMBRE_DEL":"RELLENO SANITARIO PARQUE DE APROVECHAMIENTO LA ESPERANZA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"FRONTINO","TIPO_DE_SI":"Relleno Sanitario","latitude":6.806444400000079,"longitude":-76.11805527799993},{"NOMBRE_DEL":"RELLENO SANITARIO PARQUE ECOLÓGICO PRADERAS DEL MAGDALENA","DEPARTAMEN":"CUNDINAMARCA","MUNICIPIO_":"GIRARDOT","TIPO_DE_SI":"Relleno Sanitario","latitude":4.328190000000058,"longitude":-74.85731999999989},{"NOMBRE_DEL":"RELLENO SANITARIO PARQUE ECOLÓGICO RECICLANTE","DEPARTAMEN":"META","MUNICIPIO_":"VILLAVICENCIO","TIPO_DE_SI":"Relleno Sanitario","latitude":4.127075000000038,"longitude":-73.44188889999991},{"NOMBRE_DEL":"RELLENO SANITARIO PATIO BONITO","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"TOLEDO","TIPO_DE_SI":"Relleno Sanitario","latitude":7.013805556000085,"longitude":-75.68123888899993},{"NOMBRE_DEL":"RELLENO SANITARIO PAVANAY","DEPARTAMEN":"VICHADA","MUNICIPIO_":"SANTA ROSALÍA","TIPO_DE_SI":"Relleno Sanitario","latitude":4.968581012000074,"longitude":-70.65997096799991},{"NOMBRE_DEL":"RELLENO SANITARIO PIAR LOS CERROS","DEPARTAMEN":"CORDOBA","MUNICIPIO_":"MONTERIA","TIPO_DE_SI":"Relleno Sanitario","latitude":8.576817622000078,"longitude":-75.72488127799993},{"NOMBRE_DEL":"RELLENO SANITARIO PLANTA DE MANEJO DE RESIDUOS DE AGUAZUL","DEPARTAMEN":"CASANARE","MUNICIPIO_":"AGUAZUL","TIPO_DE_SI":"Relleno Sanitario","latitude":5.157077774000079,"longitude":-72.57052222599992},{"NOMBRE_DEL":"RELLENO SANITARIO PRADO PARAJE DE LA CEIBA","DEPARTAMEN":"ARAUCA","MUNICIPIO_":"ARAUQUITA","TIPO_DE_SI":"Relleno Sanitario","latitude":7.027591700000067,"longitude":-71.42848299999991},{"NOMBRE_DEL":"RELLENO SANITARIO PTRS MÁLAGA","DEPARTAMEN":"SANTANDER","MUNICIPIO_":"MÁLAGA","TIPO_DE_SI":"Relleno Sanitario","latitude":6.724540000000043,"longitude":-72.72939999999994},{"NOMBRE_DEL":"RELLENO SANITARIO QUIEBRA HONDA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"NARINO","TIPO_DE_SI":"Relleno Sanitario","latitude":5.600000000000069,"longitude":-75.1669999999999},{"NOMBRE_DEL":"RELLENO SANITARIO RANCHO TRISTE","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"LA CEJA","TIPO_DE_SI":"Relleno Sanitario","latitude":5.980758000000033,"longitude":-75.43791399999992},{"NOMBRE_DEL":"RELLENO SANITARIO REGIONAL COLOMBA-EL GUABAL","DEPARTAMEN":"VALLE DEL CAUCA","MUNICIPIO_":"YOTOCO","TIPO_DE_SI":"Relleno Sanitario","latitude":3.904130354000077,"longitude":-76.39080434899994},{"NOMBRE_DEL":"RELLENO SANITARIO REGIONAL DEL NOROCCIDENTE - DON BOSCO","DEPARTAMEN":"CESAR","MUNICIPIO_":"BOSCONIA","TIPO_DE_SI":"Relleno Sanitario","latitude":9.996562000000036,"longitude":-73.9029509999999},{"NOMBRE_DEL":"RELLENO SANITARIO REGIONAL DEL NORTE","DEPARTAMEN":"LA GUAJIRA","MUNICIPIO_":"MAICAO","TIPO_DE_SI":"Relleno Sanitario","latitude":11.402222000000052,"longitude":-72.36694399999993},{"NOMBRE_DEL":"RELLENO SANITARIO REGIONAL DEL SAN JACINTO","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"SAN JACINTO","TIPO_DE_SI":"Relleno Sanitario","latitude":9.835667000000060,"longitude":-75.09973499999994},{"NOMBRE_DEL":"RELLENO SANITARIO REGIONAL DEL SUR DE BOLIVAR","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"SIMITÍ","TIPO_DE_SI":"Relleno Sanitario","latitude":7.836622000000092,"longitude":-73.9440459999999},{"NOMBRE_DEL":"RELLENO SANITARIO REGIONAL ECOSISTEMA SIERRA NEVADA","DEPARTAMEN":"MAGDALENA","MUNICIPIO_":"ARACATACA","TIPO_DE_SI":"Relleno Sanitario","latitude":10.526056500000038,"longitude":-74.16179179999993},{"NOMBRE_DEL":"RELLENO SANITARIO REGIONAL LA PAZ","DEPARTAMEN":"BOLÍVAR","MUNICIPIO_":"TURBANÁ","TIPO_DE_SI":"Relleno Sanitario","latitude":10.237365000000077,"longitude":-75.47821199999993},{"NOMBRE_DEL":"RELLENO SANITARIO REGIONAL LOS PICACHOS","DEPARTAMEN":"CAUCA","MUNICIPIO_":"POPAYÁN","TIPO_DE_SI":"Relleno Sanitario","latitude":2.508317786000075,"longitude":-76.75113674999993},{"NOMBRE_DEL":"RELLENO SANITARIO REGIONAL PRESIDENTE","DEPARTAMEN":"VALLE DEL CAUCA","MUNICIPIO_":"SAN PEDRO","TIPO_DE_SI":"Relleno Sanitario","latitude":3.968126166000052,"longitude":-76.25178558899995},{"NOMBRE_DEL":"RELLENO SANITARIO REGIONAL SUR DE LA GUAJIRA","DEPARTAMEN":"LA GUAJIRA","MUNICIPIO_":"FONSECA","TIPO_DE_SI":"Relleno Sanitario","latitude":10.859000000000040,"longitude":-72.78449999999992},{"NOMBRE_DEL":"RELLENO SANITARIO RIOGRANDE","DEPARTAMEN":"RISARALDA","MUNICIPIO_":"QUINCHÍA","TIPO_DE_SI":"Relleno Sanitario","latitude":5.323901771000061,"longitude":-75.7133925089999},{"NOMBRE_DEL":"RELLENO SANITARIO SAN ANTONIO","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"ANORÍ","TIPO_DE_SI":"Relleno Sanitario","latitude":7.037234000000067,"longitude":-75.15235499999994},{"NOMBRE_DEL":"RELLENO SANITARIO SAN FRANCISCO","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"SAN LUIS","TIPO_DE_SI":"Relleno Sanitario","latitude":6.048638000000046,"longitude":-75.00735999999995},{"NOMBRE_DEL":"RELLENO SANITARIO SAN PEDRO DE CARTAGO","DEPARTAMEN":"NARIÑO","MUNICIPIO_":"SAN PEDRO DE CARTAGO","TIPO_DE_SI":"Relleno Sanitario","latitude":1.555136000000061,"longitude":-77.12204799999994},{"NOMBRE_DEL":"RELLENO SANITARIO SAN SILVESTRE","DEPARTAMEN":"SANTANDER","MUNICIPIO_":"BARRANCABERMEJA","TIPO_DE_SI":"Relleno Sanitario","latitude":7.096862000000044,"longitude":-73.7006609999999},{"NOMBRE_DEL":"RELLENO SANITARIO SANTA TERESA","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"TÁMESIS","TIPO_DE_SI":"Relleno Sanitario","latitude":5.673758571000068,"longitude":-75.70979974299989},{"NOMBRE_DEL":"RELLENO SANITARIO TINAJAS","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"MACEO","TIPO_DE_SI":"Relleno Sanitario","latitude":6.584436333000046,"longitude":-74.81787825099991},{"NOMBRE_DEL":"RELLENO SANITARIO VALDIVI","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"VALDIVIA","TIPO_DE_SI":"Relleno Sanitario","latitude":7.265404213000070,"longitude":-75.40094501499992},{"NOMBRE_DEL":"RELLENO SANITARIO VDA APOSENTOS","DEPARTAMEN":"CUNDINAMARCA","MUNICIPIO_":"CUCUNUBA","TIPO_DE_SI":"Relleno Sanitario","latitude":5.224897000000059,"longitude":-73.78163799999993},{"NOMBRE_DEL":"RELLENO SANITARIO Y GRANJA AMBIENTAL LOS SALTOS","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"MARINILLA","TIPO_DE_SI":"Relleno Sanitario","latitude":6.187062242000086,"longitude":-75.30472187499993},{"NOMBRE_DEL":"RELLENO SANITARIO YARUMOS II","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"YARUMAL","TIPO_DE_SI":"Relleno Sanitario","latitude":6.969999000000087,"longitude":-75.42999899999994},{"NOMBRE_DEL":"RELLENO SANITARIO EL LIBANO","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"ABRIAQUÍ","TIPO_DE_SI":"Relleno Sanitario","latitude":6.627547180000082,"longitude":-76.08597760499993},{"NOMBRE_DEL":"RELLENO SANITARIO LAS VIOLETAS","DEPARTAMEN":"ANTIOQUIA","MUNICIPIO_":"SAN ROQUE","TIPO_DE_SI":"Relleno Sanitario","latitude":6.448675158000079,"longitude":-74.93185881499993},{"NOMBRE_DEL":"RELLENO SANITARIO EL ALCARAVAN","DEPARTAMEN":"VICHADA","MUNICIPIO_":"LA PRIMAVERA","TIPO_DE_SI":"Relleno Sanitario","latitude":5.517593607000039,"longitude":-69.62044053499994}];
+
+// Map init
+const map = L.map('map', {
+  center: [5.0, -74.0],
+  zoom: 6,
+  zoomControl: false,
+  attributionControl: true
+});
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '© OpenStreetMap © CARTO',
+  subdomains: 'abcd',
+  maxZoom: 19
+}).addTo(map);
+
+L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+// State
+let activeTypes = new Set(['Relleno Sanitario','Botadero A Cielo Abierto','Celda De Contingencia','Celda Transitoria']);
+let activeDepto = 'TODOS';
+let searchTerm = '';
+let markers = [];
+
+function makeIcon(tipo) {
+  const c = COLORS[tipo] || { fill: '#888', border: '#555' };
+  return L.circleMarker;
+}
+
+function buildPopup(d) {
+  const c = COLORS[d.TIPO_DE_SI] || { fill: '#888' };
+  const typeColors = {
+    'Relleno Sanitario':       { bg: '#14532d', text: '#4ade80' },
+    'Botadero A Cielo Abierto':{ bg: '#450a0a', text: '#f87171' },
+    'Celda De Contingencia':   { bg: '#451a03', text: '#fbbf24' },
+    'Celda Transitoria':       { bg: '#2e1065', text: '#a78bfa' },
+  };
+  const tc = typeColors[d.TIPO_DE_SI] || { bg: '#1c1f2a', text: '#9ca3af' };
+  return `<div class="popup-inner">
+    <div class="popup-type" style="background:${tc.bg};color:${tc.text}">${d.TIPO_DE_SI}</div>
+    <div class="popup-name">${d.NOMBRE_DEL}</div>
+    <div class="popup-meta">
+      <strong>Departamento</strong> ${d.DEPARTAMEN}<br>
+      <strong>Municipio</strong> ${d.MUNICIPIO_}<br>
+      <strong>Coords</strong> ${d.latitude.toFixed(5)}, ${d.longitude.toFixed(5)}
+    </div>
+  </div>`;
+}
+
+function renderMarkers() {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  const q = searchTerm.toLowerCase();
+  let count = 0;
+  DATA.forEach(d => {
+    const typeOk = activeTypes.has(d.TIPO_DE_SI);
+    const deptoOk = activeDepto === 'TODOS' || d.DEPARTAMEN.toUpperCase().includes(activeDepto);
+    const searchOk = !q || d.NOMBRE_DEL.toLowerCase().includes(q) || d.MUNICIPIO_.toLowerCase().includes(q);
+    if (!typeOk || !deptoOk || !searchOk) return;
+    const c = COLORS[d.TIPO_DE_SI] || { fill: '#888', border: '#555', r: 6 };
+    const m = L.circleMarker([d.latitude, d.longitude], {
+      radius: c.r,
+      fillColor: c.fill,
+      color: c.border,
+      weight: 1.5,
+      fillOpacity: 0.85,
+      opacity: 1,
+    })
+    .bindPopup(buildPopup(d), { maxWidth: 300, className: '' })
+    .bindTooltip(d.NOMBRE_DEL, { direction: 'top', offset: [0, -6] });
+    m.addTo(map);
+    markers.push(m);
+    count++;
+  });
+  document.getElementById('visible-count').textContent = count;
+}
+
+function toggleType(el) {
+  const t = el.dataset.type;
+  if (activeTypes.has(t)) { activeTypes.delete(t); el.classList.add('inactive'); }
+  else { activeTypes.add(t); el.classList.remove('inactive'); }
+  renderMarkers();
+}
+
+function filterDepto(depto, btn) {
+  activeDepto = depto;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMarkers();
+}
+
+function doSearch(val) {
+  searchTerm = val;
+  renderMarkers();
+}
+
+renderMarkers();
+</script>
+</body>
+</html>
