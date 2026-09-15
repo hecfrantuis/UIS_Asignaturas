@@ -355,7 +355,7 @@
 <div class="card">
 <h2>Fórmula del método</h2>
   <div class="formula">X<sub>i+1</sub> = (a × X<sub>i</sub>) mod m</div>
-  <div class="formula">R<sub>i</sub> = X<sub>i+1</sub> / m</div>
+  <div class="formula">R<sub>i</sub> = X<sub>i</sub> / m</div>
   <p class="note">
     Se utiliza una semilla inicial <b>X₀</b>, un multiplicador <b>a</b> y un módulo <b>m</b>.
     En cada iteración se calcula el residuo de <b>a × X<sub>i</sub></b> entre <b>m</b>.
@@ -386,7 +386,7 @@ y ambas deben tener la misma cantidad de dígitos.
 
 <div class="card">
 <h2>Tabla de generación</h2>
-<p class="note">Se muestran la semilla de cada iteración, el multiplicador, el producto, el módulo, el residuo obtenido y el R correspondiente.</p>
+<p class="note">Se muestran la semilla de cada iteración, el multiplicador, el producto, el módulo, el residuo obtenido y el R correspondiente a X<sub>i</sub>.</p>
 <div class="table-wrap">
 <table>
 <thead>
@@ -445,22 +445,27 @@ function generar(){
     err.textContent="La semilla X₀ debe ser mayor que 0.";
     return;
   }
+
   if(m <= 1n){
     err.textContent="El módulo m debe ser un entero mayor que 1.";
     return;
   }
+
   if(semilla >= m){
     err.textContent="La semilla X₀ debe ser menor que el módulo m.";
     return;
   }
+
   if(a <= 0n || a >= m){
     err.textContent="El multiplicador a debe ser mayor que 0 y menor que el módulo m.";
     return;
   }
+
   if(!Number.isInteger(n) || n <= 0){
     err.textContent="La cantidad n debe ser un entero mayor que 0.";
     return;
   }
+
   if(n > 100000){
     err.textContent="La cantidad máxima permitida es 100000.";
     return;
@@ -468,33 +473,45 @@ function generar(){
 
   let actual=semilla;
   let filas="", rlist="", xlist="";
-  let vistos=new Map();
+
+  // Guarda la posición real de cada Xi para detectar correctamente el período.
+  const vistos=new Map();
   let ciclo=null;
 
-  // El algoritmo es:
-  // X(i+1) = (a * Xi) mod m
-  // Ri = X(i+1) / m
-  for(let i=1; i<=n; i++){
-    const actualTexto=actual.toString();
+  /*
+    Algoritmo congruencial multiplicativo:
 
-    // Detectar cuándo vuelve a aparecer un Xi ya generado.
-    if(!vistos.has(actualTexto)){
-      vistos.set(actualTexto, i);
-    }else if(ciclo===null){
-      const inicio=vistos.get(actualTexto);
-      ciclo={inicio:inicio, longitud:i-inicio};
+    X(i+1) = (a × Xi) mod m
+    Ri     = Xi / m
+  */
+  for(let i=0; i<n; i++){
+    const xi=actual;
+    const xiTexto=xi.toString();
+
+    // Detectar si Xi ya apareció.
+    if(vistos.has(xiTexto)){
+      const inicio=vistos.get(xiTexto);
+
+      if(ciclo===null){
+        ciclo={
+          inicio:inicio,
+          longitud:i-inicio,
+          valor:xiTexto
+        };
+      }
+    }else{
+      vistos.set(xiTexto,i);
     }
 
-    const producto=a * actual;
+    const producto=a * xi;
     const siguiente=producto % m;
 
-    // Convertimos a Number solo para calcular/mostrar Ri.
-    // X(i+1) y m siguen siendo BigInt para evitar pérdida de precisión.
-    const r=Number(siguiente) / Number(m);
+    // Ri = Xi / m
+    const r=Number(xi) / Number(m);
 
     filas += `<tr>
       <td>${i}</td>
-      <td>${actualTexto}</td>
+      <td>${xiTexto}</td>
       <td>${aTexto}</td>
       <td>${producto.toString()}</td>
       <td>${mTexto}</td>
@@ -503,9 +520,9 @@ function generar(){
     </tr>`;
 
     rlist += `<b>R${i}</b> = ${r.toFixed(6)} &nbsp; | &nbsp; `;
-    xlist += `<b>X${i}</b> = ${siguiente.toString()} &nbsp; | &nbsp; `;
+    xlist += `<b>X${i}</b> = ${xiTexto} &nbsp; | &nbsp; `;
 
-    // El siguiente Xi es el residuo obtenido.
+    // El siguiente Xi será el residuo obtenido.
     actual=siguiente;
   }
 
@@ -520,7 +537,9 @@ function generar(){
   if(ciclo){
     document.getElementById("periodo").innerHTML=
       `<span class="badge">Período detectado: ${ciclo.longitud}</span>
-      <br><br>El valor X se repitió en la generación <b>${ciclo.inicio}</b> y volvió a aparecer después de <b>${ciclo.longitud}</b> posiciones.`;
+      <br><br>El valor <b>X = ${ciclo.valor}</b> se repitió en la posición
+      <b>${ciclo.inicio}</b> y volvió a aparecer en la posición
+      <b>${ciclo.inicio + ciclo.longitud}</b>.`;
   }else{
     document.getElementById("periodo").textContent=
       `No se detectó repetición dentro de las ${n} generaciones solicitadas.`;
@@ -532,9 +551,9 @@ function generar(){
 
 function ejemplo(){
   document.getElementById("x0").value="7";
-  document.getElementById("a").value="5";
-  document.getElementById("m").value="100";
-  document.getElementById("n").value="20";
+  document.getElementById("a").value="13";
+  document.getElementById("m").value="64";
+  document.getElementById("n").value="10";
   generar();
 }
 
