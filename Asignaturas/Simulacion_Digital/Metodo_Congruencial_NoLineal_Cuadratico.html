@@ -454,10 +454,8 @@ function generar(){
     err.textContent = "El módulo m debe ser un entero mayor que 1.";
     return;
   }
-  if(x0Big >= m){
-    err.textContent = "La semilla inicial X₀ debe cumplir 0 ≤ X₀ < m.";
-    return;
-  }
+  // Aplica el módulo m automáticamente a la semilla inicial si es mayor o igual a m
+  let actual = x0Big % m;
 
   let actual = x0Big;
   let filas = "", rlist = "", xlist = "";
