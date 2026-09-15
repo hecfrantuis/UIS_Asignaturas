@@ -38,7 +38,7 @@
 
   .wrap{max-width:1180px;margin:0 auto;padding:28px 22px 48px}
 
-  /* ---------- Encabezado ---------- */
+  /* Header */
   header{
     position:relative;
     overflow:hidden;
@@ -74,7 +74,6 @@
     font-size:.7rem;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;
   }
 
-  /* ---------- Pasos ---------- */
   .steps{
     position:relative;
     display:flex;flex-wrap:wrap;gap:8px;
@@ -90,7 +89,7 @@
   }
   .step:hover{background:rgba(255,255,255,.22);transform:translateY(-1px)}
 
-  /* ---------- Layout ---------- */
+  /* Layout */
   .grid{
     display:grid;
     grid-template-columns:350px minmax(0,1fr);
@@ -99,7 +98,7 @@
   }
   .grid > section{min-width:0}
 
-  /* ---------- Tarjetas ---------- */
+  /* Cards */
   .card{
     background:var(--surface);
     border:1px solid var(--line);
@@ -117,7 +116,7 @@
     background:linear-gradient(135deg,var(--brand),var(--brand-2));
   }
 
-  /* ---------- Formulario ---------- */
+  /* Form */
   label{
     display:block;margin:14px 0 6px;
     font-size:.85rem;font-weight:600;color:#3a5a51;letter-spacing:.2px;
@@ -142,7 +141,7 @@
     border:0;border-radius:12px;
     font-family:inherit;font-size:.92rem;font-weight:700;
     cursor:pointer;
-    transition:transform .16s, box-shadow .16s, background .16s, border-color .16s;
+    transition:transform .16s, box-shadow .16s, background .16s;
   }
   button:active{transform:translateY(1px) scale(.995)}
   .primary{
@@ -162,7 +161,7 @@
   }
   .danger:hover{background:#ffe6e2;transform:translateY(-1px)}
 
-  /* ---------- Mensaje error ---------- */
+  /* Error */
   #error:not(:empty){
     margin-top:14px;padding:12px 14px;
     border-radius:12px;
@@ -170,7 +169,7 @@
     color:var(--danger);font-size:.86rem;font-weight:600;
   }
 
-  /* ---------- Fórmulas ---------- */
+  /* Formulas */
   .formula{
     background:var(--brand-soft);
     border-left:4px solid var(--brand-2);
@@ -182,7 +181,7 @@
   }
   .note{color:var(--muted);font-size:.82rem;line-height:1.65;margin:8px 0 0}
 
-  /* ---------- Métricas ---------- */
+  /* Metrics */
   .metrics{
     display:grid;
     grid-template-columns:repeat(4,minmax(0,1fr));
@@ -206,7 +205,7 @@
     word-break:break-word;
   }
 
-  /* ---------- Tabla ---------- */
+  /* Table */
   .table-wrap{
     overflow:auto;
     max-height:620px;
@@ -219,7 +218,7 @@
     border-collapse:separate;
     border-spacing:0;
     width:100%;
-    min-width:880px;
+    min-width:650px;
   }
   th,td{
     padding:11px 14px;
@@ -245,7 +244,7 @@
   }
   .good{color:var(--brand);font-weight:700}
 
-  /* ---------- Info / Listas ---------- */
+  /* Lists & Info */
   .info{
     background:#f8fbfa;
     border:1px solid var(--line);
@@ -273,7 +272,7 @@
     letter-spacing:.2px;
   }
 
-  /* ---------- Utilidades ---------- */
+  /* Utilities */
   .hidden{display:none !important}
   #resultados{animation:fadeUp .45s ease both}
   @keyframes fadeUp{
@@ -288,13 +287,11 @@
     padding:10px 0 0;
   }
 
-  /* ---------- Scrollbar ---------- */
   .table-wrap::-webkit-scrollbar{height:10px;width:10px}
   .table-wrap::-webkit-scrollbar-thumb{background:#c6ded5;border-radius:99px;border:2px solid #fff}
   .table-wrap::-webkit-scrollbar-thumb:hover{background:#a8ccc0}
   .table-wrap::-webkit-scrollbar-track{background:#f4faf7}
 
-  /* ---------- Responsive ---------- */
   @media(max-width:900px){
     .wrap{padding:18px 14px 40px}
     .grid{grid-template-columns:1fr;gap:16px}
@@ -303,14 +300,6 @@
     .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
     .table-wrap{max-height:none}
   }
-  @media(max-width:430px){
-    header{padding:22px 18px}
-    .step{padding:7px 10px;font-size:.72rem}
-    .metric{padding:12px 13px}
-    .metric strong{font-size:1.15rem}
-    th,td{padding:9px 11px;font-size:.8rem}
-    .info{font-size:.84rem;line-height:2}
-  }
 </style>
 </head>
 <body>
@@ -318,13 +307,13 @@
 <header>
   <span class="badge-top">Generador Pseudoaleatorio</span>
   <h1>Método Congruencial Aditivo</h1>
-  <p>Genera números pseudoaleatorios sumando una constante a la semilla y aplicando un módulo.</p>
+  <p>Genera números pseudoaleatorios sumando una constante aditiva a la semilla actual y aplicando un módulo.</p>
   <div class="steps">
     <div class="step">1. Semilla X₀</div>
     <div class="step">2. Constante aditiva c</div>
     <div class="step">3. Sumar y aplicar módulo</div>
-    <div class="step">4. Obtener X<sub>i+1</sub></div>
-    <div class="step">5. Calcular Rᵢ</div>
+    <div class="step">4. Obtener X<sub>i</sub></div>
+    <div class="step">5. Calcular R<sub>i</sub></div>
     <div class="step">6. Repetir n veces</div>
   </div>
 </header>
@@ -334,17 +323,17 @@
 <div class="card">
 <h2>Parámetros y cantidad</h2>
 
-<label for="x0">Primera semilla X₀</label>
-<input id="x0" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej: 5734">
+<label for="x0">Semilla inicial X₀</label>
+<input id="x0" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej: 17">
 
 <label for="x1">Constante aditiva c</label>
-<input id="x1" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej: 13">
+<input id="x1" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej: 43">
 
 <label for="m">Módulo m</label>
 <input id="m" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej: 100">
 
 <label for="n">Cantidad de números a generar (n)</label>
-<input id="n" type="number" min="1" step="1" placeholder="Ej: 20">
+<input id="n" type="number" min="1" step="1" placeholder="Ej: 10">
 
 <button class="primary" onclick="generar()">Generar tabla</button>
 <button class="secondary" onclick="ejemplo()">Cargar ejemplo</button>
@@ -354,19 +343,17 @@
 
 <div class="card">
 <h2>Fórmula del método</h2>
-<div class="formula">X<sub>i+1</sub> = (X<sub>i</sub> + c) mod m</div>
+<div class="formula">X<sub>i</sub> = (X<sub>i-1</sub> + c) mod m</div>
 <div class="formula">R<sub>i</sub> = X<sub>i</sub> / m</div>
 <p class="note">
-Las dos semillas deben tener la misma cantidad de dígitos. Si tienen <b>k</b> dígitos,
-se completa el producto hasta <b>2k</b> dígitos y se toman los <b>k dígitos centrales</b>.
+Se toma la semilla anterior, se suma la constante <b>c</b>, y el resultado se divide entre <b>m</b>. El residuo es el nuevo <b>X<sub>i</sub></b>.
 </p>
 </div>
 
 <div class="card">
 <h2>Importante</h2>
 <p class="note">
-Las semillas deben ser <b>enteros positivos</b>, sin puntos, comas ni decimales,
-y ambas deben tener la misma cantidad de dígitos.
+Los parámetros deben ser <b>enteros positivos</b>. Para garantizar el período completo $m$, el incremento $c$ y el módulo $m$ deben ser coprimos.
 </p>
 </div>
 </section>
@@ -377,21 +364,26 @@ y ambas deben tener la misma cantidad de dígitos.
 <h2>Resumen</h2>
 <div class="metrics">
 <div class="metric"><span>X₀</span><strong id="rx0"></strong></div>
-<div class="metric"><span>X₁</span><strong id="rx1"></strong></div>
-<div class="metric"><span>Dígitos k</span><strong id="rk"></strong></div>
-<div class="metric"><span>Cantidad n</span><strong id="rn"></strong></div>
+<div class="metric"><span>c</span><strong id="rx1"></strong></div>
+<div class="metric"><span>m</span><strong id="rk"></strong></div>
+<div class="metric"><span>n</span><strong id="rn"></strong></div>
 </div>
 </div>
 
 <div class="card">
 <h2>Tabla de generación</h2>
-<p class="note">Se muestran la semilla actual, la constante aditiva, la suma, el módulo, el residuo obtenido y el R correspondiente.</p>
+<p class="note">Se muestra el paso a paso detallado para cada iteración.</p>
 <div class="table-wrap">
 <table>
 <thead>
 <tr>
-<th>i</th><th>X<sub>i</sub></th><th>K</th><th>Producto</th>
-<th>Producto con 2k dígitos</th><th>Dígitos centrales</th><th>R<sub>i</sub></th>
+<th>i</th>
+<th>X<sub>i-1</sub></th>
+<th>Constante (c)</th>
+<th>Suma (X<sub>i-1</sub> + c)</th>
+<th>Módulo (m)</th>
+<th>X<sub>i</sub></th>
+<th>R<sub>i</sub></th>
 </tr>
 </thead>
 <tbody id="tabla"></tbody>
@@ -400,12 +392,12 @@ y ambas deben tener la misma cantidad de dígitos.
 </div>
 
 <div class="card">
-<h2>Rᵢ por posición</h2>
+<h2>R<sub>i</sub> por posición</h2>
 <div id="rlist" class="info"></div>
 </div>
 
 <div class="card">
-<h2>X generados por posición</h2>
+<h2>X<sub>i</sub> generados por posición</h2>
 <div id="xlist" class="info"></div>
 </div>
 
@@ -417,82 +409,89 @@ y ambas deben tener la misma cantidad de dígitos.
 </section>
 </div>
 
-<footer>Método Congruencial Aditivo · X<sub>i+1</sub> = (X<sub>i</sub> + c) mod m</footer>
+<footer>Método Congruencial Aditivo · X<sub>i</sub> = (X<sub>i-1</sub> + c) mod m</footer>
 </div>
 
 <script>
 function generar(){
-  const err=document.getElementById("error");
-  err.textContent="";
+  const err = document.getElementById("error");
+  err.textContent = "";
 
-  const x0=document.getElementById("x0").value.trim();
-  const cStr=document.getElementById("x1").value.trim();
-  const mStr=document.getElementById("m").value.trim();
-  const n=Number(document.getElementById("n").value);
+  const x0 = document.getElementById("x0").value.trim();
+  const cStr = document.getElementById("x1").value.trim();
+  const mStr = document.getElementById("m").value.trim();
+  const n = Number(document.getElementById("n").value);
 
-  if(!/^\\d+$/.test(x0) || !/^\\d+$/.test(cStr) || !/^\\d+$/.test(mStr)){
-    err.textContent="La semilla, la constante aditiva y el módulo deben ser números enteros no negativos.";
+  // Expresión regular corregida para validar enteros positivos
+  if(!/^\d+$/.test(x0) || !/^\d+$/.test(cStr) || !/^\d+$/.test(mStr)){
+    err.textContent = "La semilla, la constante aditiva y el módulo deben ser enteros no negativos.";
     return;
   }
-  if(!Number.isInteger(n) || n<=0){
-    err.textContent="La cantidad n debe ser un entero mayor que 0.";
+  if(!Number.isInteger(n) || n <= 0){
+    err.textContent = "La cantidad n debe ser un entero mayor que 0.";
     return;
   }
-  if(n>100000){
-    err.textContent="La cantidad máxima permitida es 100000.";
-    return;
-  }
-
-  const x0Big=BigInt(x0), c=BigInt(cStr), m=BigInt(mStr);
-  if(m<=1n){
-    err.textContent="El módulo m debe ser un entero mayor que 1.";
-    return;
-  }
-  if(x0Big>=m){
-    err.textContent="La semilla inicial X₀ debe cumplir 0 ≤ X₀ < m.";
+  if(n > 100000){
+    err.textContent = "La cantidad máxima permitida es 100000.";
     return;
   }
 
-  let actual=x0Big, filas="", rlist="", xlist="";
-  let vistos=new Map(), ciclo=null;
+  const x0Big = BigInt(x0), c = BigInt(cStr), m = BigInt(mStr);
+  if(m <= 1n){
+    err.textContent = "El módulo m debe ser un entero mayor que 1.";
+    return;
+  }
+  if(x0Big >= m){
+    err.textContent = "La semilla inicial X₀ debe cumplir 0 ≤ X₀ < m.";
+    return;
+  }
 
-  // Método Congruencial Aditivo:
-  // X(i+1) = (X(i) + c) mod m
-  for(let j=1;j<=n;j++){
-    const clave=actual.toString();
-    if(vistos.has(clave) && ciclo===null){
-      ciclo={inicio:vistos.get(clave), longitud:j-vistos.get(clave)};
-    }else if(!vistos.has(clave)){
-      vistos.set(clave,j);
+  let actual = x0Big;
+  let filas = "", rlist = "", xlist = "";
+  let vistos = new Map(), ciclo = null;
+
+  for(let j = 1; j <= n; j++){
+    const suma = actual + c;
+    const siguiente = suma % m;
+    const r = Number(siguiente) / Number(m);
+
+    const clave = siguiente.toString();
+    if(vistos.has(clave) && ciclo === null){
+      ciclo = { inicio: vistos.get(clave), longitud: j - vistos.get(clave) };
+    } else if(!vistos.has(clave)){
+      vistos.set(clave, j);
     }
 
-    const suma=actual+c;
-    const siguiente=suma%m;
-    const r=Number(actual)/Number(m);
-
     filas += `<tr>
-      <td>${j}</td><td>${actual}</td><td>${c}</td><td>${suma}</td>
-      <td>${m}</td><td class="good">${siguiente}</td><td>${r.toFixed(6)}</td>
+      <td>${j}</td>
+      <td>${actual}</td>
+      <td>${c}</td>
+      <td>${suma}</td>
+      <td>${m}</td>
+      <td class="good">${siguiente}</td>
+      <td>${r.toFixed(6)}</td>
     </tr>`;
+
     rlist += `<b>R${j}</b> = ${r.toFixed(6)} &nbsp; | &nbsp; `;
     xlist += `<b>X${j}</b> = ${siguiente} &nbsp; | &nbsp; `;
-    actual=siguiente;
+
+    actual = siguiente;
   }
 
-  document.getElementById("rx0").textContent=x0;
-  document.getElementById("rx1").textContent=cStr;
-  document.getElementById("rk").textContent=mStr;
-  document.getElementById("rn").textContent=n;
-  document.getElementById("tabla").innerHTML=filas;
-  document.getElementById("rlist").innerHTML=rlist;
-  document.getElementById("xlist").innerHTML=xlist;
+  document.getElementById("rx0").textContent = x0;
+  document.getElementById("rx1").textContent = cStr;
+  document.getElementById("rk").textContent = mStr;
+  document.getElementById("rn").textContent = n;
+  document.getElementById("tabla").innerHTML = filas;
+  document.getElementById("rlist").innerHTML = rlist;
+  document.getElementById("xlist").innerHTML = xlist;
 
   if(ciclo){
-    document.getElementById("periodo").innerHTML=
+    document.getElementById("periodo").innerHTML =
       `<span class="badge">Período detectado: ${ciclo.longitud}</span>
-      <br><br>La semilla se repitió en la generación <b>${ciclo.inicio}</b>.`;
-  }else{
-    document.getElementById("periodo").textContent=
+      <br><br>El valor volvió a repetirse en la iteración <b>${j}</b>.`;
+  } else {
+    document.getElementById("periodo").textContent =
       `No se detectó repetición dentro de las ${n} generaciones solicitadas.`;
   }
 
@@ -501,19 +500,19 @@ function generar(){
 }
 
 function ejemplo(){
-  document.getElementById("x0").value="7";
-  document.getElementById("x1").value="13";
-  document.getElementById("m").value="100";
-  document.getElementById("n").value="20";
+  document.getElementById("x0").value = "17";
+  document.getElementById("x1").value = "43";
+  document.getElementById("m").value = "100";
+  document.getElementById("n").value = "10";
   generar();
 }
 
 function limpiar(){
-  document.getElementById("x0").value="";
-  document.getElementById("x1").value="";
-  document.getElementById("m").value="";
-  document.getElementById("n").value="";
-  document.getElementById("error").textContent="";
+  document.getElementById("x0").value = "";
+  document.getElementById("x1").value = "";
+  document.getElementById("m").value = "";
+  document.getElementById("n").value = "";
+  document.getElementById("error").textContent = "";
   document.getElementById("resultados").classList.add("hidden");
 }
 </script>
