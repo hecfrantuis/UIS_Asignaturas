@@ -335,10 +335,13 @@
 <h2>Semillas y cantidad</h2>
 
 <label for="x0">Primera semilla X₀</label>
-<input id="x0" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej: 5734">
+<input id="x0" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej: 7">
 
-<label for="x1">Multiplicador a</label>
-<input id="x1" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej: 5">
+<label for="a">Multiplicador a</label>
+<input id="a" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej: 5">
+
+<label for="m">Módulo m</label>
+<input id="m" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej: 100">
 
 <label for="n">Cantidad de números a generar (n)</label>
 <input id="n" type="number" min="1" step="1" placeholder="Ej: 20">
@@ -352,7 +355,7 @@
 <div class="card">
 <h2>Fórmula del método</h2>
   <div class="formula">X<sub>i+1</sub> = (a × X<sub>i</sub>) mod m</div>
-  <div class="formula">R<sub>i</sub> = X<sub>i</sub> / m</div>
+  <div class="formula">R<sub>i</sub> = X<sub>i+1</sub> / m</div>
   <p class="note">
     Se utiliza una semilla inicial <b>X₀</b>, un multiplicador <b>a</b> y un módulo <b>m</b>.
     En cada iteración se calcula el residuo de <b>a × X<sub>i</sub></b> entre <b>m</b>.
@@ -375,8 +378,8 @@ y ambas deben tener la misma cantidad de dígitos.
 <h2>Resumen</h2>
 <div class="metrics">
 <div class="metric"><span>X₀</span><strong id="rx0"></strong></div>
-<div class="metric"><span>X₁</span><strong id="rx1"></strong></div>
-<div class="metric"><span>Dígitos k</span><strong id="rk"></strong></div>
+<div class="metric"><span>Multiplicador a</span><strong id="ra"></strong></div>
+<div class="metric"><span>Módulo m</span><strong id="rm"></strong></div>
 <div class="metric"><span>Cantidad n</span><strong id="rn"></strong></div>
 </div>
 </div>
@@ -424,51 +427,91 @@ function generar(){
   err.textContent="";
 
   const x0=document.getElementById("x0").value.trim();
-  const aTexto=document.getElementById("x1").value.trim();
+  const aTexto=document.getElementById("a").value.trim();
   const mTexto=document.getElementById("m").value.trim();
   const n=Number(document.getElementById("n").value);
 
+  // Validación de entradas
   if(!/^\d+$/.test(x0) || !/^\d+$/.test(aTexto) || !/^\d+$/.test(mTexto)){
     err.textContent="La semilla, el multiplicador y el módulo deben contener únicamente números enteros positivos.";
     return;
   }
 
-  const semilla=BigInt(x0), a=BigInt(aTexto), m=BigInt(mTexto);
+  const semilla=BigInt(x0);
+  const a=BigInt(aTexto);
+  const m=BigInt(mTexto);
 
-  if(semilla <= 0n){ err.textContent="La semilla X₀ debe ser mayor que 0."; return; }
-  if(m <= 1n){ err.textContent="El módulo m debe ser un entero mayor que 1."; return; }
-  if(semilla >= m){ err.textContent="La semilla X₀ debe ser menor que el módulo m."; return; }
-  if(a <= 0n || a >= m){ err.textContent="El multiplicador a debe ser mayor que 0 y menor que el módulo m."; return; }
-  if(!Number.isInteger(n) || n <= 0){ err.textContent="La cantidad n debe ser un entero mayor que 0."; return; }
-  if(n > 100000){ err.textContent="La cantidad máxima permitida es 100000."; return; }
+  if(semilla <= 0n){
+    err.textContent="La semilla X₀ debe ser mayor que 0.";
+    return;
+  }
+  if(m <= 1n){
+    err.textContent="El módulo m debe ser un entero mayor que 1.";
+    return;
+  }
+  if(semilla >= m){
+    err.textContent="La semilla X₀ debe ser menor que el módulo m.";
+    return;
+  }
+  if(a <= 0n || a >= m){
+    err.textContent="El multiplicador a debe ser mayor que 0 y menor que el módulo m.";
+    return;
+  }
+  if(!Number.isInteger(n) || n <= 0){
+    err.textContent="La cantidad n debe ser un entero mayor que 0.";
+    return;
+  }
+  if(n > 100000){
+    err.textContent="La cantidad máxima permitida es 100000.";
+    return;
+  }
 
-  let actual=semilla, filas="", rlist="", xlist="";
-  let vistos=new Map(), ciclo=null;
+  let actual=semilla;
+  let filas="", rlist="", xlist="";
+  let vistos=new Map();
+  let ciclo=null;
 
-  for(let j=1;j<=n;j++){
+  // El algoritmo es:
+  // X(i+1) = (a * Xi) mod m
+  // Ri = X(i+1) / m
+  for(let i=1; i<=n; i++){
     const actualTexto=actual.toString();
-    if(vistos.has(actualTexto) && ciclo===null)
-      ciclo={inicio:vistos.get(actualTexto), longitud:j-vistos.get(actualTexto)};
-    else if(!vistos.has(actualTexto)) vistos.set(actualTexto,j);
 
-    const producto=a*actual;
+    // Detectar cuándo vuelve a aparecer un Xi ya generado.
+    if(!vistos.has(actualTexto)){
+      vistos.set(actualTexto, i);
+    }else if(ciclo===null){
+      const inicio=vistos.get(actualTexto);
+      ciclo={inicio:inicio, longitud:i-inicio};
+    }
+
+    const producto=a * actual;
     const siguiente=producto % m;
-    const r=Number(siguiente)/Number(m);
+
+    // Convertimos a Number solo para calcular/mostrar Ri.
+    // X(i+1) y m siguen siendo BigInt para evitar pérdida de precisión.
+    const r=Number(siguiente) / Number(m);
 
     filas += `<tr>
-      <td>${j}</td><td>${actualTexto}</td><td>${aTexto}</td>
-      <td>${producto.toString()}</td><td>${mTexto}</td>
-      <td class="good">${siguiente.toString()}</td><td>${r.toFixed(6)}</td>
+      <td>${i}</td>
+      <td>${actualTexto}</td>
+      <td>${aTexto}</td>
+      <td>${producto.toString()}</td>
+      <td>${mTexto}</td>
+      <td class="good">${siguiente.toString()}</td>
+      <td>${r.toFixed(6)}</td>
     </tr>`;
 
-    rlist += `<b>R${j}</b> = ${r.toFixed(6)} &nbsp; | &nbsp; `;
-    xlist += `<b>X${j}</b> = ${siguiente.toString()} &nbsp; | &nbsp; `;
+    rlist += `<b>R${i}</b> = ${r.toFixed(6)} &nbsp; | &nbsp; `;
+    xlist += `<b>X${i}</b> = ${siguiente.toString()} &nbsp; | &nbsp; `;
+
+    // El siguiente Xi es el residuo obtenido.
     actual=siguiente;
   }
 
   document.getElementById("rx0").textContent=x0;
-  document.getElementById("rx1").textContent=aTexto;
-  document.getElementById("rk").textContent=mTexto;
+  document.getElementById("ra").textContent=aTexto;
+  document.getElementById("rm").textContent=mTexto;
   document.getElementById("rn").textContent=n;
   document.getElementById("tabla").innerHTML=filas;
   document.getElementById("rlist").innerHTML=rlist;
@@ -477,7 +520,7 @@ function generar(){
   if(ciclo){
     document.getElementById("periodo").innerHTML=
       `<span class="badge">Período detectado: ${ciclo.longitud}</span>
-      <br><br>La semilla se repitió en la generación <b>${ciclo.inicio}</b>.`;
+      <br><br>El valor X se repitió en la generación <b>${ciclo.inicio}</b> y volvió a aparecer después de <b>${ciclo.longitud}</b> posiciones.`;
   }else{
     document.getElementById("periodo").textContent=
       `No se detectó repetición dentro de las ${n} generaciones solicitadas.`;
@@ -489,7 +532,7 @@ function generar(){
 
 function ejemplo(){
   document.getElementById("x0").value="7";
-  document.getElementById("x1").value="5";
+  document.getElementById("a").value="5";
   document.getElementById("m").value="100";
   document.getElementById("n").value="20";
   generar();
@@ -497,7 +540,7 @@ function ejemplo(){
 
 function limpiar(){
   document.getElementById("x0").value="";
-  document.getElementById("x1").value="";
+  document.getElementById("a").value="";
   document.getElementById("m").value="";
   document.getElementById("n").value="";
   document.getElementById("error").textContent="";
